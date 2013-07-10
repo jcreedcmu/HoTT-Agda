@@ -8,7 +8,6 @@ module Spaces.SInfinity where
     data #S∞ : Set where
       #north : #S∞
       #south : #S∞
-      #equator : #S∞ → #S∞
 
   S∞ : Set
   S∞ = #S∞
@@ -19,31 +18,31 @@ module Spaces.SInfinity where
   south : S∞
   south = #south
 
-  equator : S∞ → S∞
-  equator = #equator
-
   postulate  -- HIT
-    north-merid : (x : S∞) → north ≡ equator x
-    south-merid : (x : S∞) → south ≡ equator x
+    merid : S∞ → north ≡ south
 
-  S∞-ind : ∀ {l} {C : Set l}
+  S∞-rec : ∀ {l} {C : Set l}
            (north* : C)
            (south* : C)
-           (equator* : C -> C)
-           (north-merid* : (p : C) -> (north* ≡ equator* p))
-           (south-merid* : (p : C) -> (south* ≡ equator* p))
+           (merid* : C -> (north* ≡ south*))
            -> (s : S∞) -> C
-  S∞-ind north* south* equator* nm* sm* #north = north*
-  S∞-ind north* south* equator* nm* sm* #south = south*
-  S∞-ind north* south* equator* nm* sm* (#equator x) = equator* (S∞-ind north* south* equator* nm* sm* x)
+  S∞-rec north* south* merid* #north = north*
+  S∞-rec north* south* merid* #south = south*
 
-  S∞-rec : ∀ {l} (C : S∞ → Set l)
+  S∞-ind : ∀ {l} (C : S∞ → Set l)
            (north* : C north)
            (south* : C south)
-           (equator* : (x : S∞) -> C x -> C (equator x))
-           (north-merid* : (x : S∞) (p : C x) -> (transport C (north-merid x) north*) ≡ equator* x p)
-           (south-merid* : (x : S∞) (p : C x) -> (transport C (south-merid x) south*) ≡ equator* x p)
+           (merid* : (x : S∞) → C x → (transport C (merid x) north*) ≡ south*)
            -> (s : S∞) -> C s
-  S∞-rec C north* south* equator* nm* sm* #north = north*
-  S∞-rec C north* south* equator* nm* sm* #south = south*
-  S∞-rec C north* south* equator* nm* sm* (#equator x) = equator* x (S∞-rec C north* south* equator* nm* sm* x)
+  S∞-ind C north* south* merid* #north = north*
+  S∞-ind C north* south* merid* #south = south*
+
+  -- also should put in β rules for recursion, induction...
+
+  module Proof where
+    {- The infinite dimensional sphere is contractible -}
+    lemma0 : (x : S∞) → north ≡ x → transport (λ x → north ≡ x) (merid x) refl ≡ merid north
+    lemma0 = λ x p → trans-cst≡id (merid x) refl ∘ ap merid (! p)
+
+    S∞-is-contr : is-contr S∞
+    S∞-is-contr = north , λ y → ! (S∞-ind (λ x → north ≡ x) refl (merid north) lemma0 y)
