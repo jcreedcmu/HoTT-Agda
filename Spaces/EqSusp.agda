@@ -74,10 +74,10 @@ postulate  -- HIT
 
 postulate  -- HIT
  Susp-ρ-north-merid :
-                   (C : Set)
-                   (north* : C)
-                   (south* : C)
-                   (equator* : (x : A) -> C)
+                   {C : Set}
+                   {north* : C}
+                   {south* : C}
+                   {equator* : (x : A) -> C}
                    (north-merid* : (x : A) -> north* ≡ equator* x)
                    (south-merid* : (x : A) -> south* ≡ equator* x)
                → (x : A) → ap (Susp-rec north* south* equator* north-merid* south-merid*)
@@ -85,10 +85,10 @@ postulate  -- HIT
 
 postulate  -- HIT
  Susp-ρ-south-merid :
-                   (C : Set)
-                   (north* : C)
-                   (south* : C)
-                   (equator* : (x : A) -> C)
+                   {C : Set}
+                   {north* : C}
+                   {south* : C}
+                   {equator* : (x : A) -> C}
                    (north-merid* : (x : A) -> north* ≡ equator* x)
                    (south-merid* : (x : A) -> south* ≡ equator* x)
                → (x : A) → ap (Susp-rec north* south* equator* north-merid* south-merid*)

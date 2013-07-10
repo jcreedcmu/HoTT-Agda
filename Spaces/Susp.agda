@@ -21,13 +21,13 @@ south = #south
 postulate  -- HIT
   merid : (x : A) → north ≡ south
 
-Susp-rec : ∀ {l} {C : Set l}
+Susp-rec : ∀ {l} (C : Set l)
          (north* : C)
          (south* : C)
          (merid* : (x : A) -> (north* ≡ south*))
          -> (s : Susp) -> C
-Susp-rec north* south* nm* #north = north*
-Susp-rec north* south* nm* #south = south*
+Susp-rec C north* south* nm* #north = north*
+Susp-rec C north* south* nm* #south = south*
 
 Susp-ind : ∀ {l} (C : Susp → Set l)
          (north* : C north)
@@ -43,6 +43,6 @@ postulate  -- HIT
                → (a : A) → apd (Susp-ind C n s m) (merid a) ≡ m a
 
 postulate  -- HIT
-  Susp-ρ-merid : (C : Set) (n : C) (s : C)
+  Susp-ρ-merid : {C : Set} {n : C} {s : C}
                  (m : (a : A) -> n ≡ s)
-               → (a : A) → ap (Susp-rec n s m) (merid a) ≡ m a
+               → (a : A) → ap (Susp-rec C n s m) (merid a) ≡ m a
