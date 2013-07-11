@@ -13,10 +13,15 @@ inj-S∞ : Set → Set
 inj-S∞ X = susp X → X
 
 -- induction principle
-out-S∞ : Set → Set₁
-out-S∞ X = (C : X → Set) → ((x : X) → susp (C x) → C x) → (s : X) → C s
+out-S∞ : (X : Set) → inj-S∞ X → Set₁
+-- out-S∞ X = (C : X → Set) → ((x : X) → susp (C x) → C x) → (s : X) → C s
+out-S∞ X inj = (C : X → Set)
+           (north* : C (inj (S.north X)))
+           (south* : C (inj (S.south X)))
+           (merid* : (x : X) → C x → (transport C (ap inj (S.paths X x)) north*) ≡ south*)
+           -> (s : X) -> C s
 
-module Proof (X : Set) (inj : inj-S∞ X) (out : out-S∞ X) where
+module Proof (X : Set) (inj : inj-S∞ X) (out : out-S∞ X inj) where
 
   rc : (C : Set) → (susp C → C) → X → C
   rc C f subj = out (λ x → C) (λ x sp → f sp) subj
@@ -33,8 +38,8 @@ module Proof (X : Set) (inj : inj-S∞ X) (out : out-S∞ X) where
   lemma0 : susp ((x : X) → north ≡ x) → (x : X) → north ≡ x
   lemma0 sp x = S.Susp-rec ((x : X) → north ≡ x) (north ≡ x) {!!} {!!} {!!} sp
 
-  S∞-is-contr : is-contr X
-  S∞-is-contr = north , λ y → ! ((rc ((x : X) → north ≡ x) {!lemma0!} y) y)
+  -- S∞-is-contr : is-contr X
+  -- S∞-is-contr = north , λ y → ! (out (λ x → north ≡ x)  y)
 --  S∞-is-contr = north , λ y → ! (out (λ x → north ≡ x) refl (paths north) ? y)
 
 {-
