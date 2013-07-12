@@ -1,22 +1,22 @@
 {-# OPTIONS --without-K #-}
 
 open import Base
-{- import Spaces.Suspension as S -}
-import Spaces.Susp as S
+import Spaces.Suspension as S
 
 module Spaces.RecursorContr where
 
 susp : Set → Set
 
-{-
 susp = S.suspension
 susp-ind = S.suspension-rec
 susp-rec = S.suspension-rec-nondep
--}
+β = S.suspension-β-paths-nondep
 
+{-
 susp = S.Susp
 susp-ind = S.Susp-ind
 susp-rec = S.Susp-rec
+-}
 
 -- I can't see these
 fst = π₁
@@ -35,10 +35,6 @@ smap {X} {Y} f sp = susp-rec X (susp Y) (S.north Y) (S.south Y) (λ x → S.path
 -- induction principle
 out-S∞ : (X : Set) → inj-S∞ X → Set₁
 out-S∞ X inj = (C : X → Set) → ((q : susp (Σ X C)) → C (inj ((smap fst) q))) → (x : X) → C x
-
-β : (A : Set) (C : Set) (n s : C) (p : A → n ≡ s)
-  → ((x : A) → ap (susp-rec A C n s p) (S.paths A x) ≡ p x)
-β = {!!}
 
 module Proof (X : Set) (inj : inj-S∞ X) (out : out-S∞ X inj) where
 
