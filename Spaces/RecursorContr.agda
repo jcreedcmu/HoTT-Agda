@@ -1,14 +1,14 @@
 {-# OPTIONS --without-K #-}
 
 open import Base
-import Spaces.Susp as S
+import Spaces.Suspension as S
 
 module Spaces.RecursorContr where
 
 susp : Set → Set
-susp = S.Susp
-susp-ind = S.Susp-ind
-susp-rec = S.Susp-rec
+susp = S.suspension
+susp-ind = S.suspension-rec
+susp-rec = S.suspension-rec-nondep
 
 -- I can't see these
 fst = π₁
