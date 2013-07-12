@@ -1,14 +1,22 @@
 {-# OPTIONS --without-K #-}
 
 open import Base
-import Spaces.Suspension as S
+{- import Spaces.Suspension as S -}
+import Spaces.Susp as S
 
 module Spaces.RecursorContr where
 
 susp : Set → Set
+
+{-
 susp = S.suspension
 susp-ind = S.suspension-rec
 susp-rec = S.suspension-rec-nondep
+-}
+
+susp = S.Susp
+susp-ind = S.Susp-ind
+susp-rec = S.Susp-rec
 
 -- I can't see these
 fst = π₁
@@ -22,9 +30,15 @@ inj-S∞ X = susp X → X
 smap : {X Y : Set} → (X → Y) → susp X → susp Y
 smap {X} {Y} f sp = susp-rec X (susp Y) (S.north Y) (S.south Y) (λ x → S.paths Y (f x) ) sp
 
+{- smap fst : susp (Σ X C) → susp X -}
+
 -- induction principle
 out-S∞ : (X : Set) → inj-S∞ X → Set₁
 out-S∞ X inj = (C : X → Set) → ((q : susp (Σ X C)) → C (inj ((smap fst) q))) → (x : X) → C x
+
+β : (A : Set) (C : Set) (n s : C) (p : A → n ≡ s)
+  → ((x : A) → ap (susp-rec A C n s p) (S.paths A x) ≡ p x)
+β = {!!}
 
 module Proof (X : Set) (inj : inj-S∞ X) (out : out-S∞ X inj) where
 
@@ -40,7 +54,7 @@ module Proof (X : Set) (inj : inj-S∞ X) (out : out-S∞ X inj) where
   lemma2 : (C : X → Set)
            (xc : Σ X C) →
            S.paths X (fst xc) ≡ ap (smap fst) (S.paths (Σ X C) xc)
-  lemma2 = {!!}
+  lemma2 C xc = ! (β (Σ X C) (susp X) (S.north X) (S.south X) (λ x → S.paths X (fst x)) xc)
 
   lemma1 : (C : X → Set)
            (n* : C north)
