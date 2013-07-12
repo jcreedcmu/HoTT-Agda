@@ -5,37 +5,27 @@ import Spaces.Suspension as S
 
 module Spaces.RecursorContr where
 
-susp : Set → Set
-
+-- Renamings
 susp = S.suspension
 susp-ind = S.suspension-rec
 susp-rec = S.suspension-rec-nondep
 β = S.suspension-β-paths-nondep
-
-{-
-susp = S.Susp
-susp-ind = S.Susp-ind
-susp-rec = S.Susp-rec
--}
-
--- I can't see these
 fst = π₁
 snd = π₂
 
--- constructors
-inj-S∞ : Set → Set
-inj-S∞ X = susp X → X
-
--- Functoriality of susp
+-- Need to have functoriality of susp to define elims
 smap : {X Y : Set} → (X → Y) → susp X → susp Y
 smap {X} {Y} f sp = susp-rec X (susp Y) (S.north Y) (S.south Y) (λ x → S.paths Y (f x) ) sp
 
-{- smap fst : susp (Σ X C) → susp X -}
+-- intros
+inj-S∞ : Set → Set
+inj-S∞ X = susp X → X
 
--- induction principle
+-- elims
 out-S∞ : (X : Set) → inj-S∞ X → Set₁
 out-S∞ X inj = (C : X → Set) → ((q : susp (Σ X C)) → C (inj ((smap fst) q))) → (x : X) → C x
 
+-- If there is a set, which has the introduction forms of S∞, which also has the elimination forms of S∞...
 module Proof (X : Set) (inj : inj-S∞ X) (out : out-S∞ X inj) where
 
   north : X
@@ -67,7 +57,7 @@ module Proof (X : Set) (inj : inj-S∞ X) (out : out-S∞ X inj) where
            → (xc : Σ X C) → transport (λ qq → C (inj (smap fst qq))) (S.paths (Σ X C) xc) n* ≡ s*
   lemma0 C n* s* p* xc = ! (lemma1 C n* xc) ∘ p* (fst xc) (snd xc)
 
-  {- a more comfortable induction principle -}
+  -- ... then it has the following, more comfortable, elimination form...
   out2 : (C : X → Set)
          (north* : C north)
          (south* : C south)
@@ -76,6 +66,7 @@ module Proof (X : Set) (inj : inj-S∞ X) (out : out-S∞ X inj) where
   out2 C n* s* p* x = out C ((λ (q : susp (Σ X C)) → susp-ind (Σ X C) (λ qq → C (inj (smap fst qq)))
                                n* s* (lemma0 C n* s* p*) q)) x
 
+  -- ...and is contractible, qed.
   S∞-is-contr : is-contr X
   S∞-is-contr = north , λ y → ! (out2 (λ x → north ≡ x) refl (paths north)
                                       (λ x p → trans-cst≡id (paths x) refl ∘ ap paths (! p)) y)
