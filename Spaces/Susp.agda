@@ -46,3 +46,9 @@ postulate  -- HIT
   Susp-ρ-paths : {C : Set} {n : C} {s : C}
                  (m : (a : A) -> n ≡ s)
                → (a : A) → ap (Susp-rec C n s m) (paths a) ≡ m a
+
+
+Susp-ρ-paths2 : (C : Set) (n : C) (s : C)
+            (m : (a : A) -> n ≡ s)
+          → (a : A) → ap (Susp-rec C n s m) (paths a) ≡ m a
+Susp-ρ-paths2 C n s m a = Susp-ρ-paths m a

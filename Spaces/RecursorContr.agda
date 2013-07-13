@@ -1,15 +1,15 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --type-in-type #-}
 
 open import Base
-import Spaces.Suspension as S
+import Spaces.Susp as S
 
 module Spaces.RecursorContr where
 
 -- Renamings
-susp = S.suspension
-susp-ind = S.suspension-rec
-susp-rec = S.suspension-rec-nondep
-β = S.suspension-β-paths-nondep
+susp = S.Susp
+susp-ind = S.Susp-ind
+susp-rec = S.Susp-rec
+β = S.Susp-ρ-paths2
 fst = π₁
 snd = π₂
 
@@ -24,6 +24,9 @@ inj-S∞ X = susp X → X
 -- elims
 out-S∞ : (X : Set) → inj-S∞ X → Set₁
 out-S∞ X inj = (C : X → Set) → ((q : susp (Σ X C)) → C (inj ((smap fst) q))) → (x : X) → C x
+
+data S∞ : Set where
+   # : susp S∞ → S∞
 
 -- If there is a set, which has the introduction forms of S∞, which also has the elimination forms of S∞...
 module Proof (X : Set) (inj : inj-S∞ X) (out : out-S∞ X inj) where
