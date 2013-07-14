@@ -47,10 +47,10 @@ module Jcreed.Yoneda where
   coyoneda-is-injective X Y α =
     eq-to-path (let f = (α · Y) (id Y) ; g = (! α · X) (id X) in
                f , iso-is-eq f g
-               (λ y → tap (tap (naturality (! α) X Y ((α · Y) (id Y))) (id X)) y
-                 ∘ tap (left-inverse α (id Y)) y)
-               (λ x → tap (tap (naturality α Y X ((! α · X) (id X))) (id Y)) x
-                 ∘ tap (right-inverse α (id X)) x))
+               (λ y → tap (tap (naturality (! α) X Y ((α · Y) (id Y))) (id X)
+                 ∘  (left-inverse α (id Y))) y)
+               (λ x → tap (tap (naturality α Y X ((! α · X) (id X))) (id Y)
+                 ∘ right-inverse α (id X)) x))
 
   -- F is a representable functor, represented by X
   Repr : (F : Functor) (X : Set) → Set₁
