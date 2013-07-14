@@ -52,7 +52,25 @@ module Jcreed.Representable where
           ≡ (λ A B (f : A → B) (g : X → A) x → f (g x)))
           → (A B : Set) (f : A → B) →
           transport (λ z → z A → z B) Q (λ (g : Y → A) y → f (g y)) ≡ (λ (g : X → A) x → f (g x))
-  lift-transport-ctx-binders = {!!}
+  lift-transport-ctx-binders X Y Q M A B f = {! !}
+
+  lemma3 : (X Y : Set)
+           (Q : (λ (C : Set) → Y → C) ≡ (λ C → X → C))
+           (A B : Set) (f : A → B) (w : X → A) →
+           transport (λ x → x A → x B) Q (λ g y → f (g y)) w
+           ≡
+           transport (λ z → z B) Q {!(λ y → f (transport B (! Q) w y))!}
+  lemma3 X Y Q M = {!λ A B f w → trans-→ (λ z → z A) (λ z → z B) Q (λ g y → f (g y)) w!}
+
+
+  mine : (X Y : Set)
+       (Q : (λ (C : Set) → Y → C) ≡ (λ C → X → C))
+       (B : (Set → Set) → Set) (P : (Set → Set) → Set)
+       (q : B (λ (C : Set) → Y → C) → P (λ (C : Set) → Y → C))
+       (a : B (λ (C : Set) → X → C))
+    → transport (λ x → B x → P x) Q q a
+      ≡ transport P Q (q $ transport B (! Q) a)
+  mine X Y Q B P q a = trans-→ B P Q q a
 
   lemma2 : (X Y : Set)
            (Q : (λ (C : Set) → Y → C) ≡ (λ C → X → C))
