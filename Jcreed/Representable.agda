@@ -13,6 +13,32 @@ module Jcreed.Representable where
       o : Set → Set
       m : {A B : Set} (f : A → B) → o A → o B
 
+  _•_ : {X Y : Set} → X ≡ Y → X → Y
+  refl • x = x
+
+  tap : ∀ {i j} {X : Set i} {Y : Set j} {f g : X → Y} → f ≡ g → (x : X) → f x ≡ g x
+  tap refl = λ x → refl
+
+  _*_ : (F : Functor) (A : Set) → Set
+  F * A = Functor.o F A
+
+  _`_ : (F : Functor) {A B : Set} (f : A → B) → F * A → F * B
+  F ` f = Functor.m F f
+
+  _·_ : {F G : Functor} (α : F ≡ G) → (A : Set) → F * A → G * A
+  α · A = λ x → (ap (λ H → H * A) α) • x
+
+  naturality : {F G : Functor} (α : F ≡ G) → (A B : Set) (f : A → B) →
+               (G ` f) ◯ (α · A) ≡ (α · B) ◯ (F ` f)
+  naturality refl A B f = refl
+
+  coyoneda : (X : Set) → Functor
+  coyoneda X = functor (λ Y → X → Y) (λ f g → f ◯ g)
+
+  win : {X Y : Set} (α : coyoneda X ≡ coyoneda Y) → (A B : Set) (f : A → B) →
+               (λ (g : Y → A) → f ◯ g) ◯ (λ x → (ap (λ H → H * A) α) • x) ≡ (λ x → (ap (λ H → H * B) α) • x) ◯ (λ (h : X → A) → f ◯ h)
+  win α A B f = naturality α A B f
+
   xm : (F : Functor) (A B : Set) (f : A → B) → Functor.o F A → Functor.o F B
   xm F A B f x = Functor.m F {A} {B} f x
 
@@ -22,8 +48,6 @@ module Jcreed.Representable where
   sb2 : (A : Set) (B : A → Set) (p q : Σ A B) → (α : p ≡ q) → transport B (sb A B p q α) (π₂ p) ≡ π₂ q
   sb2 A B p q α = (trans-ap B π₁ α (π₂ p)) ∘ apd π₂ α
 
-  coyoneda : (X : Set) → Functor
-  coyoneda X = functor (λ Y → X → Y) (λ f g → f ◯ g)
 
   zzz : (X Y : Set) (Q : coyoneda Y ≡ coyoneda X) →  transport
         (λ z → (A B : Set) → (A → B) → Functor.o z A → Functor.o z B) Q
@@ -33,11 +57,7 @@ module Jcreed.Representable where
   Repr : (F : Functor) (X : Set) → Set₁
   Repr F X = F ≡ coyoneda X
 
-  tap : ∀ {i j} {X : Set i} {Y : Set j} {f g : X → Y} → f ≡ g → (x : X) → f x ≡ g x
-  tap refl = λ x → refl
 
-  _•_ : {X Y : Set} → X ≡ Y → X → Y
-  refl • x = x
 
   -- XXX : could probably prove this from trans-→ and trans-cst
   trans-cst→ : {Z : Set} {z1 z2 : Z} (Q : z1 ≡ z2) (A : Set) (B : Z → Set) (F : A → B z1) (G : A → B z2)   →
@@ -74,7 +94,8 @@ transport P refl t = t
        (a : X → A) (f : A → B)
     → transport (λ x → x A → x B) Q (λ g y → f (g y)) a
       ≡ tap Q B • (λ y → f ((transport (λ z → z A) (! Q) a) y))
-  mine2 X Y A B Q a f = mine X Y A B Q a f ∘ {!trans-head Q B (λ y → f ((transport (λ z → z A) (! Q) a) y))!}
+  mine2 X Y A B Q a f = mine X Y A B Q a f ∘ trans-head Q B (λ y → f ((transport (λ z → z A) (! Q) a) y))
+
 
   lemma2 : (X Y : Set)
            (Q : (λ (C : Set) → Y → C) ≡ (λ C → X → C))
