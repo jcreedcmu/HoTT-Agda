@@ -16,8 +16,19 @@ module Jcreed.Representable where
   xm : (F : Functor) (A B : Set) (f : A → B) → Functor.o F A → Functor.o F B
   xm F A B f x = Functor.m F {A} {B} f x
 
+  sb : (A : Set) (B : A → Set) (p q : Σ A B) → p ≡ q → π₁ p ≡ π₁ q
+  sb A B p q α = ap π₁ α
+
+  sb2 : (A : Set) (B : A → Set) (p q : Σ A B) → (α : p ≡ q) → transport B (sb A B p q α) (π₂ p) ≡ π₂ q
+  sb2 A B p q α = (trans-ap B π₁ α (π₂ p)) ∘ apd π₂ α
+
   coyoneda : (X : Set) → Functor
   coyoneda X = functor (λ Y → X → Y) (λ f g → f ◯ g)
+
+  zzz : (X Y : Set) (Q : coyoneda Y ≡ coyoneda X) →  transport
+        (λ z → (A B : Set) → (A → B) → Functor.o z A → Functor.o z B) Q
+        (λ A B f g x → f (g x)) ≡ (λ A B f g x → f (g x))
+  zzz X Y Q = apd xm Q
 
   Repr : (F : Functor) (X : Set) → Set₁
   Repr F X = F ≡ coyoneda X
@@ -40,7 +51,8 @@ module Jcreed.Representable where
 
   lemma2 : (X Y : Set)
            (Q : (λ (C : Set) → Y → C) ≡ (λ C → X → C))
-           (M : {!!})
+           (M : transport (λ z → (A B : Set) → (A → B) → z A → z B) Q (λ A B (f : A → B) (g : Y → A) y → f (g y))
+                 ≡ (λ A B (f : A → B) (g : X → A) y → f (g y)))
            → X ≡ Y
   lemma2 X Y Q M = eq-to-path (let f = (tap Q Y) • (id Y) ; g = (! (tap Q X)) • (id X) in
                                f , iso-is-eq f g {!!} {!!}  )
@@ -48,7 +60,8 @@ module Jcreed.Representable where
   lemma0 : (X Y : Set)
            (Q : coyoneda Y ≡ coyoneda X)
            → X ≡ Y
-  lemma0 X Y Q = lemma2 X Y (ap Functor.o Q) {!   apd Functor.m Q !}
+  lemma0 X Y Q = lemma2 X Y (ap Functor.o Q) ((trans-ap (λ z → (A B : Set) → (A → B) → z A → z B)
+                                                         Functor.o Q (λ A B f x y → f (x y))) ∘ apd xm Q )
 
   thm : (X Y : Set) (F : Functor) → Repr F X → Repr F Y → X ≡ Y
   thm X Y F rX rY = lemma0 X Y (! rY ∘ rX)
