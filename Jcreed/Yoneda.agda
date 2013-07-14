@@ -12,17 +12,13 @@ module Jcreed.Yoneda where
 
   open Functor
 
-  -- treat a path between types like a function
-  _•_ : {X Y : Set} → X ≡ Y → X → Y
-  refl • x = x
-
   -- converse of function extensionality
   tap : ∀ {i j} {X : Set i} {Y : Set j} {f g : X → Y} → f ≡ g → (x : X) → f x ≡ g x
   tap refl = λ x → refl
 
   -- apply a natural isomorphism at an object
   _·_ : {F G : Functor} (α : F ≡ G) → (A : Set) → F * A → G * A
-  α · A = λ x → (ap (λ H → H * A) α) • x
+  α · A = transport (λ H → H * A) α
 
   -- paths between functors are in fact natural isomorphisms
   naturality : {F G : Functor} (α : F ≡ G) → (A B : Set) (f : A → B) →
