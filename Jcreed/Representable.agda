@@ -63,14 +63,13 @@ module Jcreed.Representable where
   lemma3 X Y Q M = {!λ A B f w → trans-→ (λ z → z A) (λ z → z B) Q (λ g y → f (g y)) w!}
 
 
-  mine : (X Y : Set)
+  mine : (X Y : Set) (A B : Set)
        (Q : (λ (C : Set) → Y → C) ≡ (λ C → X → C))
-       (B : (Set → Set) → Set) (P : (Set → Set) → Set)
-       (q : B (λ (C : Set) → Y → C) → P (λ (C : Set) → Y → C))
-       (a : B (λ (C : Set) → X → C))
-    → transport (λ x → B x → P x) Q q a
-      ≡ transport P Q (q $ transport B (! Q) a)
-  mine X Y Q B P q a = trans-→ B P Q q a
+       (q : (Y → B) → (Y → A))
+       (a : X → B)
+    → transport (λ x → x B → x A) Q q a
+      ≡ transport (λ z → z A) Q (q $ transport (λ z → z B) (! Q) a)
+  mine X Y A B Q q a = trans-→ (λ z → z B) (λ z → z A) Q q a
 
   lemma2 : (X Y : Set)
            (Q : (λ (C : Set) → Y → C) ≡ (λ C → X → C))
