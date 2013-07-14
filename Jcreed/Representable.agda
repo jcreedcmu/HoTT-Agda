@@ -43,22 +43,16 @@ module Jcreed.Representable where
         (α · X) ((! α · X) x) ≡ x
   right-inverse refl x = refl
 
-  win2b : {X Y : Set} (α : coyoneda Y ≡ coyoneda X) (x : X) →
-        (α · X) ((! α · X) (id X)) x ≡ x
-  win2b {X} {Y} α x = tap (right-inverse α (id X)) x
-
-  win2c : {X Y : Set} (α : coyoneda Y ≡ coyoneda X) → (x : X) →
-                (! α · X) (id X) (((α · Y) (id Y)) x) ≡ (α · X) ((! α · X) (id X)) x
-  win2c {X} {Y} α x = tap (tap (naturality α Y X ((! α · X) (id X))) (id Y)) x
-
- --(y : Y) → (α · Y) (id Y) ((! α · X) (id X) y) ≡ y
- --(x : X) → (! α · X) (id X) ((α · Y) (id Y) x) ≡ x
+  left-inverse : {X : Set} {F G : Functor} (α : F ≡ G) (x : F * X) →
+        (! α · X) ((α · X) x) ≡ x
+  left-inverse refl x = refl
 
   lemmaa : (X Y : Set)
            (α : coyoneda Y ≡ coyoneda X)
            → X ≡ Y
   lemmaa X Y α = eq-to-path (let f = (α · Y) (id Y) ; g = (! α · X) (id X) in
-                               f , iso-is-eq f g {!!} (λ x → win2c α x ∘ win2b α x)  )
+                               f , iso-is-eq f g (λ y → tap (tap (naturality (! α) X Y ((α · Y) (id Y))) (id X)) y ∘ tap (left-inverse α (id Y)) y)
+                                                 (λ x → tap (tap (naturality α Y X ((! α · X) (id X))) (id Y)) x ∘ tap (right-inverse α (id X)) x)  )
 
 
   xm : (F : Functor) (A B : Set) (f : A → B) → Functor.o F A → Functor.o F B
