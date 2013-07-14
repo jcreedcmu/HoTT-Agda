@@ -44,6 +44,14 @@ module Jcreed.Representable where
      (transport (λ z → A → (B z)) Q F ≡ G) → (a : A) → transport B Q (F a) ≡ G a
   trans-cst→ refl A B F G p = tap p
 
+{-
+transport : ∀ {i j} {A : Set i} (P : A → Set j) {x y : A}
+  → (x ≡ y → P x → P y)
+transport P refl t = t
+-}
+
+  trans-head : ∀ {i} {C : Set i} {x y : C → Set} (Q : x ≡ y) (c : C) (T : x c) → transport (λ f → f c) Q T ≡ tap Q c • T
+  trans-head refl c T = refl
 
   lift-transport-ctx-binders :
           (X Y : Set)
@@ -54,22 +62,19 @@ module Jcreed.Representable where
           transport (λ z → z A → z B) Q (λ (g : Y → A) y → f (g y)) ≡ (λ (g : X → A) x → f (g x))
   lift-transport-ctx-binders X Y Q M A B f = {! !}
 
-  lemma3 : (X Y : Set)
-           (Q : (λ (C : Set) → Y → C) ≡ (λ C → X → C))
-           (A B : Set) (f : A → B) (w : X → A) →
-           transport (λ x → x A → x B) Q (λ g y → f (g y)) w
-           ≡
-           transport (λ z → z B) Q {!(λ y → f (transport B (! Q) w y))!}
-  lemma3 X Y Q M = {!λ A B f w → trans-→ (λ z → z A) (λ z → z B) Q (λ g y → f (g y)) w!}
-
-
   mine : (X Y : Set) (A B : Set)
        (Q : (λ (C : Set) → Y → C) ≡ (λ C → X → C))
-       (q : (Y → B) → (Y → A))
-       (a : X → B)
-    → transport (λ x → x B → x A) Q q a
-      ≡ transport (λ z → z A) Q (q $ transport (λ z → z B) (! Q) a)
-  mine X Y A B Q q a = trans-→ (λ z → z B) (λ z → z A) Q q a
+       (a : X → A) (f : A → B)
+    → transport (λ x → x A → x B) Q (λ g y → f (g y)) a
+      ≡ transport (λ z → z B) Q (λ y → f ((transport (λ z → z A) (! Q) a) y))
+  mine X Y A B Q a f = trans-→ (λ z → z A) (λ z → z B) Q (λ g y → f (g y)) a
+
+  mine2 : (X Y : Set) (A B : Set)
+       (Q : (λ (C : Set) → Y → C) ≡ (λ C → X → C))
+       (a : X → A) (f : A → B)
+    → transport (λ x → x A → x B) Q (λ g y → f (g y)) a
+      ≡ tap Q B • (λ y → f ((transport (λ z → z A) (! Q) a) y))
+  mine2 X Y A B Q a f = mine X Y A B Q a f ∘ {!trans-head Q B (λ y → f ((transport (λ z → z A) (! Q) a) y))!}
 
   lemma2 : (X Y : Set)
            (Q : (λ (C : Set) → Y → C) ≡ (λ C → X → C))
