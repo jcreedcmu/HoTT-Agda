@@ -35,9 +35,31 @@ module Jcreed.Representable where
   coyoneda : (X : Set) → Functor
   coyoneda X = functor (λ Y → X → Y) (λ f g → f ◯ g)
 
-  win : {X Y : Set} (α : coyoneda X ≡ coyoneda Y) → (A B : Set) (f : A → B) →
-               (λ (g : Y → A) → f ◯ g) ◯ (λ x → (ap (λ H → H * A) α) • x) ≡ (λ x → (ap (λ H → H * B) α) • x) ◯ (λ (h : X → A) → f ◯ h)
-  win α A B f = naturality α A B f
+  win : {X Y : Set} (α : coyoneda X ≡ coyoneda Y) → (A B : Set) (f : A → B) (g : X → A) →
+               (λ y → f (((α · A) g) y)) ≡  (α · B) (λ y → f (g y))
+  win α A B f g = tap (naturality α A B f) g
+
+  right-inverse : {X : Set} {F G : Functor} (α : F ≡ G) (x : G * X) →
+        (α · X) ((! α · X) x) ≡ x
+  right-inverse refl x = refl
+
+  win2b : {X Y : Set} (α : coyoneda Y ≡ coyoneda X) (x : X) →
+        (α · X) ((! α · X) (id X)) x ≡ x
+  win2b {X} {Y} α x = tap (right-inverse α (id X)) x
+
+  win2c : {X Y : Set} (α : coyoneda Y ≡ coyoneda X) → (x : X) →
+                (! α · X) (id X) (((α · Y) (id Y)) x) ≡ (α · X) ((! α · X) (id X)) x
+  win2c {X} {Y} α x = tap (tap (naturality α Y X ((! α · X) (id X))) (id Y)) x
+
+ --(y : Y) → (α · Y) (id Y) ((! α · X) (id X) y) ≡ y
+ --(x : X) → (! α · X) (id X) ((α · Y) (id Y) x) ≡ x
+
+  lemmaa : (X Y : Set)
+           (α : coyoneda Y ≡ coyoneda X)
+           → X ≡ Y
+  lemmaa X Y α = eq-to-path (let f = (α · Y) (id Y) ; g = (! α · X) (id X) in
+                               f , iso-is-eq f g {!!} (λ x → win2c α x ∘ win2b α x)  )
+
 
   xm : (F : Functor) (A B : Set) (f : A → B) → Functor.o F A → Functor.o F B
   xm F A B f x = Functor.m F {A} {B} f x
@@ -113,50 +135,3 @@ transport P refl t = t
 
   thm : (X Y : Set) (F : Functor) → Repr F X → Repr F Y → X ≡ Y
   thm X Y F rX rY = lemma0 X Y (! rY ∘ rX)
-
-{-
-  -- "the functor F is represented by the object X"
-  record Repr (F : Functor) (X : Set) : Set₁ where
-    constructor repr
-    field
-      o : (λ C → (X → C)) ≡ (Functor.o F)
-      m : {A B : Set} (f : A → B) → transport (λ z → z A → z B) o (λ g → f ◯ g) ≡ (Functor.m F) f
-
-                              (tap (eq2 Y X (id Y) g ∘ inverse-left-inverse (Q X) (id X)))
-
-  thm : (X Y : Set) (F : Functor) → Repr F X → Repr F Y → X ≡ Y
-  thm X Y F rX rY = eq-to-path (lemma0 X Y (λ C → path-to-eq (tap (Repr.o rX ∘ ! (Repr.o rY)) C)) {!!} {!!})
--}
-
-
-
-
-
-{-
-(C D : Set) (f : X → C) (g : C → D) →
-g ◯ (path-to-eq (tap (Repr.o rX ∘ ! (Repr.o rY)) C) ☆ f)
-≡ path-to-eq (tap (Repr.o rX ∘ ! (Repr.o rY)) D) ☆ (g ◯ f)
--}
-
-{-
-  lemma3 : (X Y Z W : Set) (Q : ((Z : Set) → (Y → Z) ≃ (X → Z)))
-          (f : Z → W) (g : Y → Z) → f ◯ (Q Z ☆ g) ≡ (Q W) ☆ (f ◯ g)
-  lemma3 = {!!}
-
-  lemma2 : (X Y : Set) (Q : ((Z : Set) → (Y → Z) ≃ (X → Z)))
-          (f : Y → X) → f ◯ (Q Y ☆ id Y) ≡ (Q X) ☆ f
-  lemma2 X Y Q f = lemma3 X Y Y X Q f (id Y)
-
-
-  lemma0 : (X Y : Set) (Q : ((Z : Set) → (Y → Z) ≃ (X → Z)))
-           → (y : Y) → (Q Y ☆ id Y) (((Q X ⁻¹) ☆ id X) y) ≡ y
-  lemma0 X Y Q y = {!π₂ (Q Y)!}
-  lemma1 : (X Y : Set) (Q : ((Z : Set) → (Y → Z) ≃ (X → Z)))
-           → (x : X) → ((Q X ⁻¹) ☆ id X) ((Q Y ☆ id Y) x) ≡ x
-  lemma1 = {!!}
-
-  lemma : (X Y : Set) → ((Z : Set) → (Y → Z) ≃ (X → Z)) → X ≃ Y
-  lemma X Y Q = let f : X → Y ; f = Q Y ☆ (id Y) in
-                  f , iso-is-eq f ((Q X)⁻¹ ☆ (id X)) (lemma0 X Y Q) (lemma1 X Y Q)
-
--}
