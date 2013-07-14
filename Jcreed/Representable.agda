@@ -14,13 +14,13 @@ module Jcreed.Representable where
       m : {A B : Set} (f : A → B) → o A → o B
 
   -- "the functor F is represented by the object X"
-  record Repr (F : Functor) (X : Set) : Set₂ where
+  record Repr (F : Functor) (X : Set) : Set₁ where
     constructor repr
     field
       o : (λ C → (X → C)) ≡ (Functor.o F)
       m : {A B : Set} (f : A → B) → transport (λ z → z A → z B) o (λ g → f ◯ g) ≡ (Functor.m F) f
 
-  what : {X Y : Set} {f g : X → Y} → f ≡ g → (x : X) → f x ≡ g x
+  what : ∀ {i j} {X : Set i} {Y : Set j} {f g : X → Y} → f ≡ g → (x : X) → f x ≡ g x
   what refl = λ x → refl
 
   lemma0 : (X Y : Set)
@@ -34,7 +34,13 @@ module Jcreed.Representable where
                               (what (eq2 Y X (id Y) g ∘ inverse-left-inverse (Q X) (id X)))
 
   thm : (X Y : Set) (F : Functor) → Repr F X → Repr F Y → X ≡ Y
-  thm X Y F rX rY = {!!}
+  thm X Y F rX rY = eq-to-path (lemma0 X Y (λ C → path-to-eq (what (Repr.o rX ∘ ! (Repr.o rY)) C)) {!!} {!!})
+
+{-
+(C D : Set) (f : X → C) (g : C → D) →
+g ◯ (path-to-eq (what (Repr.o rX ∘ ! (Repr.o rY)) C) ☆ f)
+≡ path-to-eq (what (Repr.o rX ∘ ! (Repr.o rY)) D) ☆ (g ◯ f)
+-}
 
 {-
   lemma3 : (X Y Z W : Set) (Q : ((Z : Set) → (Y → Z) ≃ (X → Z)))
