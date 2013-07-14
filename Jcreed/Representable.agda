@@ -7,18 +7,32 @@ module Jcreed.Representable where
   -- homs of a type X into various other types, you know exactly what
   -- X is.
 
+  record Functor : Set₁ where
+    constructor functor
+    field
+      o : Set → Set
+      m : {A B : Set} (f : A → B) → o A → o B
 
-  -- "the type operator F is represented by the object X"
-  repr : (F : Set → Set) (X : Set) → Set₁
-  repr F X = (C : Set) → F(C) ≡ X → C
 
-  lemma3 : (X Y : Set) (Q : ((Z : Set) → (Y → Z) ≃ (X → Z)))
-          (f : Y → X) → f ◯ (Q Y ☆ id Y) ≡ (Q X) ☆ f
+  -- "the functor F is represented by the object X"
+  record Repr (F : Functor) (X : Set) : Set₂ where
+    constructor repr
+    field
+      o : (λ C → (X → C)) ≡ (Functor.o F)
+      m : {A B : Set} (f : A → B) → transport (λ z → z A → z B) o (λ g → f ◯ g) ≡ (Functor.m F) f
+
+  thm : (X Y : Set) (F : Functor) → Repr F X → Repr F Y → X ≡ Y
+  thm X Y F rX rY = {!rX Y!}
+
+{-
+  lemma3 : (X Y Z W : Set) (Q : ((Z : Set) → (Y → Z) ≃ (X → Z)))
+          (f : Z → W) (g : Y → Z) → f ◯ (Q Z ☆ g) ≡ (Q W) ☆ (f ◯ g)
   lemma3 = {!!}
 
   lemma2 : (X Y : Set) (Q : ((Z : Set) → (Y → Z) ≃ (X → Z)))
-           (f : Y → X) → (Q X ⁻¹) ☆ (f ◯ (Q Y ☆ id Y)) ≡ f
-  lemma2 = {!!}
+          (f : Y → X) → f ◯ (Q Y ☆ id Y) ≡ (Q X) ☆ f
+  lemma2 X Y Q f = lemma3 X Y Y X Q f (id Y)
+
 
   lemma0 : (X Y : Set) (Q : ((Z : Set) → (Y → Z) ≃ (X → Z)))
            → (y : Y) → (Q Y ☆ id Y) (((Q X ⁻¹) ☆ id X) y) ≡ y
@@ -31,5 +45,4 @@ module Jcreed.Representable where
   lemma X Y Q = let f : X → Y ; f = Q Y ☆ (id Y) in
                   f , iso-is-eq f ((Q X)⁻¹ ☆ (id X)) (lemma0 X Y Q) (lemma1 X Y Q)
 
-  thm : (X Y : Set) (F : Set → Set) → repr F X → repr F Y → X ≡ Y
-  thm X Y F rX rY = {!rX Y!}
+-}
