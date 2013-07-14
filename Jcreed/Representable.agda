@@ -39,20 +39,25 @@ module Jcreed.Representable where
   _•_ : {X Y : Set} → X ≡ Y → X → Y
   refl • x = x
 
-  lemma1 : (X Y : Set)
-           (Q : (C : Set) → (X → C) ≃ (Y → C))
-           (eq1 : (C D : Set) (f : X → C) (g : C → D) → g ◯ (Q C ☆ f) ≡ Q D ☆ (g ◯ f))
-           (eq2 : (C D : Set) (f : Y → C) (g : C → D) → g ◯ (inverse (Q C) f) ≡ inverse (Q D) (g ◯ f))
-           → X ≃ Y
-  lemma1 X Y Q eq1 eq2 = let f = inverse (Q Y) (id Y)
-                             g = (Q X) ☆ (id X)
-         in f , iso-is-eq f g (tap (eq1 X Y (id X) f ∘ inverse-right-inverse (Q Y) (id Y)))
-                              (tap (eq2 Y X (id Y) g ∘ inverse-left-inverse (Q X) (id X)))
+  -- XXX : could probably prove this from trans-→ and trans-cst
+  trans-cst→ : {Z : Set} {z1 z2 : Z} (Q : z1 ≡ z2) (A : Set) (B : Z → Set) (F : A → B z1) (G : A → B z2)   →
+     (transport (λ z → A → (B z)) Q F ≡ G) → (a : A) → transport B Q (F a) ≡ G a
+  trans-cst→ refl A B F G p = tap p
+
+
+  lift-transport-ctx-binders :
+          (X Y : Set)
+          (Q : (λ (C : Set) → Y → C) ≡ (λ C → X → C)) →
+          (transport (λ z → (A B : Set) → (A → B) → z A → z B) Q (λ A B (f : A → B) (g : Y → A) y → f (g y))
+          ≡ (λ A B (f : A → B) (g : X → A) x → f (g x)))
+          → (A B : Set) (f : A → B) →
+          transport (λ z → z A → z B) Q (λ (g : Y → A) y → f (g y)) ≡ (λ (g : X → A) x → f (g x))
+  lift-transport-ctx-binders = {!!}
 
   lemma2 : (X Y : Set)
            (Q : (λ (C : Set) → Y → C) ≡ (λ C → X → C))
-           (M : transport (λ z → (A B : Set) → (A → B) → z A → z B) Q (λ A B (f : A → B) (g : Y → A) y → f (g y))
-                 ≡ (λ A B (f : A → B) (g : X → A) y → f (g y)))
+           (M : (A B : Set) (f : A → B) →
+                  transport (λ z → z A → z B) Q (λ (g : Y → A) y → f (g y)) ≡ (λ (g : X → A) x → f (g x)))
            → X ≡ Y
   lemma2 X Y Q M = eq-to-path (let f = (tap Q Y) • (id Y) ; g = (! (tap Q X)) • (id X) in
                                f , iso-is-eq f g {!!} {!!}  )
@@ -60,8 +65,8 @@ module Jcreed.Representable where
   lemma0 : (X Y : Set)
            (Q : coyoneda Y ≡ coyoneda X)
            → X ≡ Y
-  lemma0 X Y Q = lemma2 X Y (ap Functor.o Q) ((trans-ap (λ z → (A B : Set) → (A → B) → z A → z B)
-                                                         Functor.o Q (λ A B f x y → f (x y))) ∘ apd xm Q )
+  lemma0 X Y Q = lemma2 X Y (ap Functor.o Q) (lift-transport-ctx-binders X Y (ap Functor.o Q) ((trans-ap (λ z → (A B : Set) → (A → B) → z A → z B)
+                                                         Functor.o Q (λ A B f x y → f (x y))) ∘ apd xm Q ))
 
   thm : (X Y : Set) (F : Functor) → Repr F X → Repr F Y → X ≡ Y
   thm X Y F rX rY = lemma0 X Y (! rY ∘ rX)
