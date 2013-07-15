@@ -10,7 +10,7 @@ module Jcreed.Yoneda where
       _*_ : Set → Set
       _`_ : {A B : Set} (f : A → B) → _*_ A → _*_ B
 
-  open Functor
+  open Functor public
 
   -- converse of function extensionality
   tap : ∀ {i j} {X : Set i} {Y : Set j} {f g : X → Y} → f ≡ g → (x : X) → f x ≡ g x
