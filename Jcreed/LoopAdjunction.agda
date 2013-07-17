@@ -95,13 +95,12 @@ module Jcreed.LoopAdjunction where
           F ≡ G
   pmap-eq F G p q = ap2 pmap p q
 
-  par : {A : Set} {x y z : A} {p1 q1 : x ≡ y} {p2 q2 : z ≡ y} → p1 ≡ q1 → p2 ≡ q2 →  p1 ∘ ! p2 ≡ q1 ∘ ! q2
-  par refl refl = refl
-
+  par : {A B C : Set} {p1 q1 : A} {p2 q2 : B} (F : A → B → C) → p1 ≡ q1 → p2 ≡ q2 →  F p1 p2 ≡ F q1 q2
+  par F refl refl = refl
 
   forw : (P Q : Pointed) (f : P ⇒ Ω Q) → jda2 P Q (adj P Q f) ≡ f
   forw P Q f = pmap-eq (jda2 P Q (adj P Q f)) f
-               (Funext.funext (λ x →  par
+               (Funext.funext (λ x →  par (λ p q → p ∘ ! q)
                (Susp-ρ-paths (space P) (space-map f) x)
                (Susp-ρ-paths (space P) (space-map f) (point P) ∘ point-map f)
                ∘ refl-right-unit (space-map f x)))
