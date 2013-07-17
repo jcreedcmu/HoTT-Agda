@@ -2,12 +2,17 @@
 
 open import Base
 
-module Spaces.Susp (A : Set) where
-
+module Jcreed.Susp (A : Set) where
+{-
 private
   data #Susp : Set where
     #north : #Susp
     #south : #Susp
+-}
+
+data #Susp : Set where
+  #north : #Susp
+  #south : #Susp
 
 Susp : Set
 Susp = #Susp
