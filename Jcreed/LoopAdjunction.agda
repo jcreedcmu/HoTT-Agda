@@ -199,14 +199,25 @@ module Jcreed.LoopAdjunction where
          ≡ space-map f
   abstract lemma1 {P} {Q} f x = {!!}
 
-  attempt : (P Q : Pointed) (f : P ⇒ Ω Q) (x : space P) (pmf : space-map f x ≡ point (Ω Q)) →
-    ! (tap (lemma1 f x) x) ∘
-    opposite-right-inverse
+  blob : (P Q : Pointed) (f : P ⇒ Ω Q) (x : space P) → (ap (Susp-rec (space P) (space Q) (point Q) (point Q) (space-map f))
+    (paths (space P) x) ∘ ! (ap (Susp-rec (space P) (space Q) (point Q) (point Q) (space-map f)) (paths (space P) x))
+    ≡ refl)
+  blob P Q f x = opposite-right-inverse
     (ap
      (Susp-rec (space P) (space Q) (point Q) (point Q) (space-map f))
      (paths (space P) x))
-    ≡ pmf
-  attempt P Q f = {!!}
+
+  --       (ap
+  --       (Susp-rec (space P) (space Q) (point Q) (point Q) (space-map f))
+  --       (paths (space P) x))
+
+  attempt : (P Q : Pointed) (f : P ⇒ Ω Q) (x : space P) (pmf : space-map f x ≡ point (Ω Q)) →
+    ! (tap (lemma1 f x) x) ∘ blob P Q f x ≡ pmf
+  attempt P Q f x = {!    opposite-right-inverse
+    (ap
+     (Susp-rec (space P) (space Q) (point Q) (point Q) (space-map f))
+     (paths (space P) x))
+!}
 
   forw : (P Q : Pointed) (f : P ⇒ Ω Q) → jda2 P Q (adj P Q f) ≡ f
   forw P Q f = pmap-eq (jda2 P Q (adj P Q f)) f
