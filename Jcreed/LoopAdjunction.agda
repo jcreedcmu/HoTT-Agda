@@ -214,13 +214,13 @@ module Jcreed.LoopAdjunction where
  -- f : (\x → M x) ≡ (λ x → N x)
  -- E x : M x ≡ N x
  -- tap f x = E x
-  think : (A B : Set) (M N : A → B) (f : M ≡ N) (E : (x : A) → M x ≡ N x) (x : A) → ((x : A) → tap f x ≡ E x) → f ≡ funext E
-  think A B M N f E x = {!!}
+  think : (A B : Set) (M N : A → B) (f : M ≡ N) (E : (x : A) → M x ≡ N x) (x : A) → funext (tap f)  ≡ f
+  think A B M .M refl E x = {!refl!}
 
-  attempt : (P Q : Pointed) (f : P ⇒ Ω Q) (x : space P) (pmf : space-map f x ≡ point (Ω Q)) →
+  attempt : (P Q : Pointed) (f : P ⇒ Ω Q)  (x : space P) (pmf : space-map f x ≡ point (Ω Q)) →
     tap (lemma1 f x) x  ≡ blob P Q f x ∘ ! pmf
 
-  attempt P Q f x = {! tap (lemma0 f)!}
+  attempt P Q f x = {! tap (lemma0 f) ∘ !}
 
   forw : (P Q : Pointed) (f : P ⇒ Ω Q) → jda2 P Q (adj P Q f) ≡ f
   forw P Q f = pmap-eq (jda2 P Q (adj P Q f)) f
