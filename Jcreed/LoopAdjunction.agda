@@ -51,9 +51,19 @@ module Jcreed.LoopAdjunction where
   trans-fapp≡cst refl q = refl
 
 
-  -- naturality
-  Ω : Pointed → Pointed
-  Ω P = pointed (point P ≡ point P) refl
+  Σ : Set → Pointed
+  Σ P = pointed (Susp P) (north P)
+
+  Ω : Pointed → Set
+  Ω P = point P ≡ point P
+
+  Σum : (P : Set) (Q : Pointed) → Σ P ⇒ Q
+  Σum P Q = pmap (Susp-rec P (space Q) (point Q) (point Q) (λ x → refl)) refl
+
+  Σump : (P : Set) (Q : Pointed) (h : Σ P ⇒ Q) → h ≡ Σum P Q
+  Σump  P Q h = pmap-eq h (Σum P Q) {!!} {!!}
+
+{-
 
   Σ : Pointed → Pointed
   Σ P = pointed (Susp (space P)) (north (space P))
@@ -308,4 +318,5 @@ module Jcreed.LoopAdjunction where
 
   back : (P Q : Pointed) (f : Σ P ⇒ Q) → adj P Q (jda P Q f) ≡ f
   back P Q f = {!!}
+-}
 -}
