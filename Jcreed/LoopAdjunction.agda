@@ -64,26 +64,18 @@ module Jcreed.LoopAdjunction where
     → transport (λ x → x k ≡ a) p q ≡ ! (tap p k) ∘ q
   trans-fapp≡cst refl q = refl
 
-  Σ : Set → 2Pointed
-  Σ P = pointed (Susp P) (north P) (south P)
+  postulate
+    Σ : Set → 2Pointed
+    Σum : (P : Set) (Q : 2Pointed) (m : (x : P) → pn Q ≡ ps Q)
+          → Σ P ⇒ Q
+    Σump : (P : Set) (Q : 2Pointed) (m : (x : P) → pn Q ≡ ps Q)
+           (h : Σ P ⇒ Q) → h ≡ Σum P Q m
 
-  Ω : 2Pointed → Set
-  Ω P = pn P ≡ ps P
-
-  Σum : (P : Set) (Q : 2Pointed) (m : (x : P) → pn Q ≡ ps Q)
-        → Σ P ⇒ Q
-  Σum P Q m = pmap (Susp-rec P (space Q) (pn Q) (ps Q) m) refl refl
-
-
-  Σump : (P : Set) (Q : 2Pointed) (m : (x : P) → pn Q ≡ ps Q)
-         (h : Σ P ⇒ Q) → h ≡ Σum P Q m
-  Σump P Q m h = pmap-eq h (Σum P Q m)
-       (funext (Susp-ind P (λ x → map h x ≡ Susp-rec P (space Q) (pn Q) (ps Q) m x)
-       (pn-map h) (ps-map h)
-       (λ x → trans-app≡app (map h) (Susp-rec P (space Q) (pn Q) (ps Q) m)
-                              (paths P x) (pn-map h) ∘ {!!})))
-       {!!} {!!}
-
+    Ω : 2Pointed → Set
+    Ωum : (P : Set) (Q : 2Pointed) (m : (x : P) → pn Q ≡ ps Q)
+          → P → Ω Q
+    Ωump : (P : Set) (Q : 2Pointed) (m : (x : P) → pn Q ≡ ps Q)
+           (h : P → Ω Q) → h ≡ Ωum P Q m
   -- Ωum : (P : Set) (Q : Pointed) → Σ P ⇒ Q
   -- Σum P Q = pmap (Susp-rec P (space Q) (point Q) (point Q) (λ x → refl)) refl
 
