@@ -33,6 +33,28 @@ module Jcreed.LoopAdjunction where
   pid : (P : Pointed) → (P ⇒ P)
   pid P = pmap (id (space P)) refl
 
+  pmap-eq : {P Q : Pointed} (F G : P ⇒ Q) (p : space-map F ≡ space-map G) →
+          transport (λ z → z (point P) ≡ point Q) p (point-map F) ≡ point-map G →
+          F ≡ G
+  pmap-eq F G p q = ap2 pmap p q
+
+  tap : ∀ {j} {A B : Set j} {x y : A → B} (p : x ≡ y) (k : A) → x k ≡ y k
+  tap refl k = refl
+
+  trans-fapp≡cst : ∀ {j} {A B : Set j} {k : A} {a : B} {x y : A → B}
+    (p : x ≡ y) (q : x k ≡ a)
+    → transport (λ x → x k ≡ a) p q ≡ ! (tap p k) ∘ q
+  trans-fapp≡cst refl q = refl
+
+  maybe : (P Q : Set) (x : P) (y : Q) (F G : P → Q) (p : F ≡ G)
+          (fm : F x ≡ y) (gm : G x ≡ y) → ! (tap p x) ∘ fm ≡ gm
+  maybe P Q x y F .F refl fm gm = {!refl!}
+
+  leap : (P Q : Pointed) (F G : P ⇒ Q)
+         → (space-map F ≡ space-map G)
+         → F ≡ G
+  leap P Q F G p = pmap-eq F G p (trans-fapp≡cst p (point-map F) ∘ {!maybe P Q p!})
+
   -- naturality
   Ω : Pointed → Pointed
   Ω P = pointed (point P ≡ point P) refl
@@ -62,6 +84,25 @@ module Jcreed.LoopAdjunction where
   adj P Q f = pmap (λ x → Susp-rec (space P) (space Q) (point Q) (point Q)
                           (space-map f) x) refl
 
+  -- adj : hom(-, Ω Q) → hom(Σ -, Q) covariant in Q
+
+  --                                   adj
+  -- adj : y : Q ⇒ R -->  hom(P, Ω Q) → hom(Σ P, Q)
+  --                            |             |
+  --             hom(P, Ω y)    |             | hom(Σ P, y)
+  --                            v             v
+  --                      hom(P, Ω R) → hom(Σ P, R)
+  --                                   adj
+
+  -- let x : P ⇒ Ω Q.     y ⊚ adj x ≡ adj (Ω y ⊚ x)
+
+  -- adj : hom(P, Ω -) → hom(Σ P, -) contravariant in P
+
+  adj-nat1 : {P Q R : Pointed} (y : Q ⇒ R) (x : P ⇒ Ω Q) →
+             y ⊚ adj P Q x ≡ adj P R (Ωmap Q R y ⊚ x)
+  adj-nat1 {P} {Q} {R} y x = pmap-eq (y ⊚ adj _ _ x) (adj _ _ (Ωmap _ _ y ⊚ x))
+           {!!} {!!}
+
   jda : (P Q : Pointed) → Σ P ⇒ Q → P ⇒ Ω Q
   jda P Q f =  Ωmap (Σ P) Q f ⊚ η P
 
@@ -90,13 +131,21 @@ module Jcreed.LoopAdjunction where
   infix  2 _■
   infixr 2 _≡[_]_
 
-  pmap-eq : {P Q : Pointed} (F G : P ⇒ Q) (p : space-map F ≡ space-map G) →
-          transport (λ z → z (point P) ≡ point Q) p (point-map F) ≡ point-map G →
-          F ≡ G
-  pmap-eq F G p q = ap2 pmap p q
-
   par : {A B C : Set} {p1 q1 : A} {p2 q2 : B} (F : A → B → C) → p1 ≡ q1 → p2 ≡ q2 →  F p1 p2 ≡ F q1 q2
   par F refl refl = refl
+
+
+
+  test : (P Q : Pointed) (f : P ⇒ Ω Q) →
+    transport (λ z → z (point P) ≡ point (Ω Q))
+    (funext
+     (λ x →
+        par (λ p q → p ∘ ! q) (Susp-ρ-paths (space P) (space-map f) x)
+        (Susp-ρ-paths (space P) (space-map f) (point P) ∘ point-map f)
+        ∘ refl-right-unit (space-map f x)))
+    (point-map (jda2 P Q (adj P Q f)))
+    ≡ point-map f
+  test P Q f = {!point-map f!}
 
   forw : (P Q : Pointed) (f : P ⇒ Ω Q) → jda2 P Q (adj P Q f) ≡ f
   forw P Q f = pmap-eq (jda2 P Q (adj P Q f)) f
