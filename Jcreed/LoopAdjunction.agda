@@ -8,39 +8,53 @@ module Jcreed.LoopAdjunction where
 
   {- The goal here is to show the suspension is left adjoint to loops -}
 
-  record Pointed : Set₁ where
+  record 2Pointed : Set₁ where
     constructor pointed
     field
       space : Set
-      point : space
+      pn : space
+      ps : space
 
-  open Pointed public
+  open 2Pointed public
 
-  record _⇒_ (X Y : Pointed) : Set where
+  record _⇒_ (X Y : 2Pointed) : Set where
     constructor pmap
     field
-      space-map : space X → space Y
-      point-map : space-map (point X) ≡ point Y
+      map : space X → space Y
+      pn-map : map (pn X) ≡ pn Y
+      ps-map : map (ps X) ≡ ps Y
 
   open _⇒_ public
 
-  -- pointed maps compose
-  _⊚_ : {P Q R : Pointed} → (Q ⇒ R) → (P ⇒ Q) → (P ⇒ R)
-  _⊚_ {P} {Q} {R} F G = pmap (space-map F ◯ space-map G)
-                             (ap (space-map F) (point-map G) ∘ point-map F)
+  -- -- pointed maps compose
+  -- _⊚_ : {P Q R : Pointed} → (Q ⇒ R) → (P ⇒ Q) → (P ⇒ R)
+  -- _⊚_ {P} {Q} {R} F G = pmap (space-map F ◯ space-map G)
+  --                            (ap (space-map F) (point-map G) ∘ point-map F)
 
-  -- pointed maps have identities
-  pid : (P : Pointed) → (P ⇒ P)
-  pid P = pmap (id (space P)) refl
+  -- -- pointed maps have identities
+  -- pid : (P : Pointed) → (P ⇒ P)
+  -- pid P = pmap (id (space P)) refl
 
-  pointed-eq : (P Q : Pointed) (p : space P ≡ space Q)
-               (q : transport (id _) p (point P) ≡ point Q) → P ≡ Q
-  pointed-eq P Q p q = ap2 pointed p q
+  -- pointed-eq : (P Q : Pointed) (p : space P ≡ space Q)
+  --              (q : transport (id _) p (point P) ≡ point Q) → P ≡ Q
+  -- pointed-eq P Q p q = ap2 pointed p q
 
-  pmap-eq : {P Q : Pointed} (F G : P ⇒ Q) (p : space-map F ≡ space-map G) →
-          transport (λ z → z (point P) ≡ point Q) p (point-map F) ≡ point-map G →
+  ap3 : {A D : Set} {B C : A → Set}
+        (f : (a : A) → B a → C a → D) {a1 a2 : A}
+        (p : a1 ≡ a2) →
+        {u1 : B a1} {u2 : B a2}
+        {v1 : C a1} {v2 : C a2} →
+        transport B p u1 ≡ u2 →
+        transport C p v1 ≡ v2 →
+        f a1 u1 v1 ≡ f a2 u2 v2
+  ap3 f refl refl refl = refl
+
+  pmap-eq : {P Q : 2Pointed} (F G : P ⇒ Q)
+            (p : map F ≡ map G) →
+            transport (λ z → z (pn P) ≡ pn Q) p (pn-map F) ≡ pn-map G →
+            transport (λ z → z (ps P) ≡ ps Q) p (ps-map F) ≡ ps-map G →
           F ≡ G
-  pmap-eq F G p q = ap2 pmap p q
+  pmap-eq F G p q r = ap3 pmap p q r
 
   tap : ∀ {j} {A B : Set j} {x y : A → B} (p : x ≡ y) (k : A) → x k ≡ y k
   tap refl k = refl
@@ -50,18 +64,28 @@ module Jcreed.LoopAdjunction where
     → transport (λ x → x k ≡ a) p q ≡ ! (tap p k) ∘ q
   trans-fapp≡cst refl q = refl
 
+  Σ : Set → 2Pointed
+  Σ P = pointed (Susp P) (north P) (south P)
 
-  Σ : Set → Pointed
-  Σ P = pointed (Susp P) (north P)
+  Ω : 2Pointed → Set
+  Ω P = pn P ≡ ps P
 
-  Ω : Pointed → Set
-  Ω P = point P ≡ point P
+  Σum : (P : Set) (Q : 2Pointed) (m : (x : P) → pn Q ≡ ps Q)
+        → Σ P ⇒ Q
+  Σum P Q m = pmap (Susp-rec P (space Q) (pn Q) (ps Q) m) refl refl
 
-  Σum : (P : Set) (Q : Pointed) → Σ P ⇒ Q
-  Σum P Q = pmap (Susp-rec P (space Q) (point Q) (point Q) (λ x → refl)) refl
 
-  Σump : (P : Set) (Q : Pointed) (h : Σ P ⇒ Q) → h ≡ Σum P Q
-  Σump  P Q h = pmap-eq h (Σum P Q) {!!} {!!}
+  Σump : (P : Set) (Q : 2Pointed) (m : (x : P) → pn Q ≡ ps Q)
+         (h : Σ P ⇒ Q) → h ≡ Σum P Q m
+  Σump P Q m h = pmap-eq h (Σum P Q m)
+       (funext (Susp-ind P (λ x → map h x ≡ Susp-rec P (space Q) (pn Q) (ps Q) m x)
+       (pn-map h) (ps-map h)
+       (λ x → trans-app≡app (map h) (Susp-rec P (space Q) (pn Q) (ps Q) m)
+                              (paths P x) (pn-map h) ∘ {!!})))
+       {!!} {!!}
+
+  -- Ωum : (P : Set) (Q : Pointed) → Σ P ⇒ Q
+  -- Σum P Q = pmap (Susp-rec P (space Q) (point Q) (point Q) (λ x → refl)) refl
 
 {-
 
