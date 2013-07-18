@@ -33,6 +33,10 @@ module Jcreed.LoopAdjunction where
   pid : (P : Pointed) → (P ⇒ P)
   pid P = pmap (id (space P)) refl
 
+  pointed-eq : (P Q : Pointed) (p : space P ≡ space Q)
+               (q : transport (id _) p (point P) ≡ point Q) → P ≡ Q
+  pointed-eq P Q p q = ap2 pointed p q
+
   pmap-eq : {P Q : Pointed} (F G : P ⇒ Q) (p : space-map F ≡ space-map G) →
           transport (λ z → z (point P) ≡ point Q) p (point-map F) ≡ point-map G →
           F ≡ G
@@ -46,14 +50,6 @@ module Jcreed.LoopAdjunction where
     → transport (λ x → x k ≡ a) p q ≡ ! (tap p k) ∘ q
   trans-fapp≡cst refl q = refl
 
-  maybe : (P Q : Set) (x : P) (y : Q) (F G : P → Q) (p : F ≡ G)
-          (fm : F x ≡ y) (gm : G x ≡ y) → ! (tap p x) ∘ fm ≡ gm
-  maybe P Q x y F .F refl fm gm = {!refl!}
-
-  leap : (P Q : Pointed) (F G : P ⇒ Q)
-         → (space-map F ≡ space-map G)
-         → F ≡ G
-  leap P Q F G p = pmap-eq F G p (trans-fapp≡cst p (point-map F) ∘ {!maybe P Q p!})
 
   -- naturality
   Ω : Pointed → Pointed
@@ -98,10 +94,10 @@ module Jcreed.LoopAdjunction where
 
   -- adj : hom(P, Ω -) → hom(Σ P, -) contravariant in P
 
-  adj-nat1 : {P Q R : Pointed} (y : Q ⇒ R) (x : P ⇒ Ω Q) →
-             y ⊚ adj P Q x ≡ adj P R (Ωmap Q R y ⊚ x)
-  adj-nat1 {P} {Q} {R} y x = pmap-eq (y ⊚ adj _ _ x) (adj _ _ (Ωmap _ _ y ⊚ x))
-           {!!} {!!}
+  -- adj-nat1 : {P Q R : Pointed} (y : Q ⇒ R) (x : P ⇒ Ω Q) →
+  --            y ⊚ adj P Q x ≡ adj P R (Ωmap Q R y ⊚ x)
+  -- adj-nat1 {P} {Q} {R} y x = pmap-eq (y ⊚ adj _ _ x) (adj _ _ (Ωmap _ _ y ⊚ x))
+  --          {!!} {!!}
 
   jda : (P Q : Pointed) → Σ P ⇒ Q → P ⇒ Ω Q
   jda P Q f =  Ωmap (Σ P) Q f ⊚ η P
@@ -134,9 +130,48 @@ module Jcreed.LoopAdjunction where
   par : {A B C : Set} {p1 q1 : A} {p2 q2 : B} (F : A → B → C) → p1 ≡ q1 → p2 ≡ q2 →  F p1 p2 ≡ F q1 q2
   par F refl refl = refl
 
+{-
+  -- Here's an experiment in shoving around the basepoint
+
+  type-ctx : (P Q : Pointed) (f : P ⇒ Ω Q) (pm : space-map f (point P) ≡ refl)
+              → Set
+  type-ctx P Q f pm =
+    (transport (λ z → z (point P) ≡ point (Ω Q))
+    (funext
+     (λ x →
+        par (λ p q → p ∘ ! q) (Susp-ρ-paths (space P) (space-map f) x)
+        (Susp-ρ-paths (space P) (space-map f) (point P) ∘ pm)
+        ∘ refl-right-unit (space-map f x)))
+    (point-map (jda2 P Q (adj P Q f)))
+    ≡ pm)
+
+  # : (Q : Pointed) (x : space Q) → Pointed
+  # Q x = pointed (space Q) x
+
+  iso-to-path : {A B : Set} (f : A → B) (g : B → A) (h : (y : B) → f (g y) ≡ y)
+    (h' : (x : A) → g (f x) ≡ x) → A ≡ B
+  iso-to-path f g h h' = eq-to-path (f , iso-is-eq f g h h')
+
+  altspace : {Q : Pointed} (x : space Q) (p : x ≡ point Q) → Q ≡ # Q x
+  altspace {Q} x p = pointed-eq Q (# Q x) refl (! p)
+
+  altmap : (P Q : Pointed) (f : P ⇒ Q) → P ⇒ # Q (space-map f (point P))
+  altmap P Q f = transport (λ Q → P ⇒ Q) (altspace (space-map f (point P)) (point-map f)) f
+
+  altmap-thm : (P Q : Pointed) (f : P ⇒ Q) → (point-map (altmap P Q f)) ≡ {!!}
+  altmap-thm P Q f = {!!}
+
+  lemma-setup : (P Q : Pointed) (C : Set) (f : P ⇒ Q)
+                (X1 X2 : space-map f (point P) ≡ (point Q) → C) → (X1 (point-map f) ≡ X2 (point-map f))
+                → P ⇒ # Q (space-map f (point P))
+  lemma-setup P Q C f X1 X2 q = altmap P Q f
+-}
 
 
-  test : (P Q : Pointed) (f : P ⇒ Ω Q) →
+  -- This is my first substantial subgoal that I don't know how to prove
+
+{-
+  lemma0 : (P Q : Pointed) (f : P ⇒ Ω Q) →
     transport (λ z → z (point P) ≡ point (Ω Q))
     (funext
      (λ x →
@@ -144,16 +179,39 @@ module Jcreed.LoopAdjunction where
         (Susp-ρ-paths (space P) (space-map f) (point P) ∘ point-map f)
         ∘ refl-right-unit (space-map f x)))
     (point-map (jda2 P Q (adj P Q f)))
-    ≡ point-map f
   test P Q f = {!point-map f!}
+-}
+
+  lemma0 : {P Q : Pointed} (f : P ⇒ Ω Q) →
+         space-map (jda2 P Q (adj P Q f)) ≡ space-map f
+  abstract lemma0 {P} {Q} f = funext (λ x →  par (λ p q → p ∘ ! q)
+               (Susp-ρ-paths (space P) (space-map f) x)
+               (Susp-ρ-paths (space P) (space-map f) (point P) ∘ point-map f)
+               ∘ refl-right-unit (space-map f x))
+
+  lemma1 : {P Q : Pointed} (f : P ⇒ Ω Q) (y : space P) →
+         (λ x →
+         ap (Susp-rec (space P) (space Q) (point Q) (point Q) (space-map f))
+            (paths (space P) x)
+         ∘ ! (ap
+             (Susp-rec (space P) (space Q) (point Q) (point Q) (space-map f))
+             (paths (space P) y)))
+         ≡ space-map f
+  abstract lemma1 {P} {Q} f x = {!!}
+
+  attempt : (P Q : Pointed) (f : P ⇒ Ω Q) (x : space P) (pmf : space-map f x ≡ point (Ω Q)) →
+    ! (tap (lemma1 f x) x) ∘
+    opposite-right-inverse
+    (ap
+     (Susp-rec (space P) (space Q) (point Q) (point Q) (space-map f))
+     (paths (space P) x))
+    ≡ pmf
+  attempt P Q f = {!!}
 
   forw : (P Q : Pointed) (f : P ⇒ Ω Q) → jda2 P Q (adj P Q f) ≡ f
   forw P Q f = pmap-eq (jda2 P Q (adj P Q f)) f
-               (Funext.funext (λ x →  par (λ p q → p ∘ ! q)
-               (Susp-ρ-paths (space P) (space-map f) x)
-               (Susp-ρ-paths (space P) (space-map f) (point P) ∘ point-map f)
-               ∘ refl-right-unit (space-map f x)))
-               {!!}
+               (lemma0 f)
+               (trans-fapp≡cst (lemma0 f) (point-map (jda2 P Q (adj P Q f))) ∘ {!!})
 
 
   back : (P Q : Pointed) (f : Σ P ⇒ Q) → adj P Q (jda2 P Q f) ≡ f
