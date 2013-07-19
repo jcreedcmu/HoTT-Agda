@@ -49,9 +49,6 @@ module Jcreed.LoopAdjunction where
         f a1 u1 v1 ≡ f a2 u2 v2
   ap3 f refl refl refl = refl
 
-  iso-to-path : {A B : Set} (f : A → B) (g : B → A) (h : (y : B) → f (g y) ≡ y)
-    (h' : (x : A) → g (f x) ≡ x) → A ≡ B
-  iso-to-path f g h h' = eq-to-path (f , iso-is-eq f g h h')
 
   pmap-eq : {P Q : 2Pointed} (F G : P ⇒ Q)
             (p : map F ≡ map G) →
@@ -59,14 +56,6 @@ module Jcreed.LoopAdjunction where
             transport (λ z → z (ps P) ≡ ps Q) p (ps-map F) ≡ ps-map G →
           F ≡ G
   pmap-eq F G p q r = ap3 pmap p q r
-
-  tap : ∀ {j} {A B : Set j} {x y : A → B} (p : x ≡ y) (k : A) → x k ≡ y k
-  tap refl k = refl
-
-  trans-fapp≡cst : ∀ {j} {A B : Set j} {k : A} {a : B} {x y : A → B}
-    (p : x ≡ y) (q : x k ≡ a)
-    → transport (λ x → x k ≡ a) p q ≡ ! (tap p k) ∘ q
-  trans-fapp≡cst refl q = refl
 
   Σ : Set → 2Pointed
   Σ P = pointed (Susp P) (north P) (south P)
