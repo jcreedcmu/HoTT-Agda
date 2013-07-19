@@ -49,6 +49,10 @@ module Jcreed.LoopAdjunction where
         f a1 u1 v1 ≡ f a2 u2 v2
   ap3 f refl refl refl = refl
 
+  iso-to-path : {A B : Set} (f : A → B) (g : B → A) (h : (y : B) → f (g y) ≡ y)
+    (h' : (x : A) → g (f x) ≡ x) → A ≡ B
+  iso-to-path f g h h' = eq-to-path (f , iso-is-eq f g h h')
+
   pmap-eq : {P Q : 2Pointed} (F G : P ⇒ Q)
             (p : map F ≡ map G) →
             transport (λ z → z (pn P) ≡ pn Q) p (pn-map F) ≡ pn-map G →
@@ -64,18 +68,38 @@ module Jcreed.LoopAdjunction where
     → transport (λ x → x k ≡ a) p q ≡ ! (tap p k) ∘ q
   trans-fapp≡cst refl q = refl
 
-  postulate
-    Σ : Set → 2Pointed
-    Σum : (P : Set) (Q : 2Pointed) (m : (x : P) → pn Q ≡ ps Q)
-          → Σ P ⇒ Q
-    Σump : (P : Set) (Q : 2Pointed) (m : (x : P) → pn Q ≡ ps Q)
-           (h : Σ P ⇒ Q) → h ≡ Σum P Q m
+  Σ : Set → 2Pointed
+  Σ P = pointed (Susp P) (north P) (south P)
 
-    Ω : 2Pointed → Set
-    Ωum : (P : Set) (Q : 2Pointed) (m : (x : P) → pn Q ≡ ps Q)
-          → P → Ω Q
-    Ωump : (P : Set) (Q : 2Pointed) (m : (x : P) → pn Q ≡ ps Q)
-           (h : P → Ω Q) → h ≡ Ωum P Q m
+  Ω : 2Pointed → Set
+  Ω Q = pn Q ≡ ps Q
+
+  claim : (P : Set) (Q : 2Pointed) → (Σ P ⇒ Q) ≡ (P → Ω Q)
+  claim P Q = iso-to-path
+            (λ f x → ! (pn-map f) ∘ ap (map f) (paths P x) ∘ ps-map f)
+            (λ g → pmap (Susp-rec P (space Q) (pn Q) (ps Q) g) refl refl)
+            (λ y → funext (λ x →
+              refl-right-unit (ap (Susp-rec P (space Q) (pn Q) (ps Q) y) (paths P x))
+              ∘ Susp-ρ-paths P y x))
+            (λ x → pmap-eq
+              (pmap
+              (Susp-rec P (space Q) (pn Q) (ps Q)
+              (λ x₁ → ! (pn-map x) ∘ ap (map x) (paths P x₁) ∘ ps-map x))
+              refl refl) x
+              {!!} {!!} {!!})
+
+  -- Ω : (Q : Set) (a b : Q) → Set
+  -- Ω Q a b = a ≡ b
+
+  -- Ωum :  (P Q : Set) (a b : Q) (m : P → a ≡ b) → P → Ω Q a b
+  -- Ωum P Q a b m = m
+
+  -- Ωum : (P : Set) (Q : 2Pointed) (m : (x : P) → pn Q ≡ ps Q)
+  --       → P → Ω Q
+  -- Ωump : (P Q : Set) (a b : Q) (m : P → a ≡ b)
+  --        (h : P → Ω Q a b) → h ≡ Ωum P Q a b m
+  -- Ωump = {!!}
+
   -- Ωum : (P : Set) (Q : Pointed) → Σ P ⇒ Q
   -- Σum P Q = pmap (Susp-rec P (space Q) (point Q) (point Q) (λ x → refl)) refl
 
@@ -173,10 +197,6 @@ module Jcreed.LoopAdjunction where
 
   # : (Q : Pointed) (x : space Q) → Pointed
   # Q x = pointed (space Q) x
-
-  iso-to-path : {A B : Set} (f : A → B) (g : B → A) (h : (y : B) → f (g y) ≡ y)
-    (h' : (x : A) → g (f x) ≡ x) → A ≡ B
-  iso-to-path f g h h' = eq-to-path (f , iso-is-eq f g h h')
 
   altspace : {Q : Pointed} (x : space Q) (p : x ≡ point Q) → Q ≡ # Q x
   altspace {Q} x p = pointed-eq Q (# Q x) refl (! p)
