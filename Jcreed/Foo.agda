@@ -1,60 +1,39 @@
 {-# OPTIONS --without-K  #-}
 open import Base
-open import Jcreed.Util
+open import Jcreed.Util hiding (_*_ ; _`_)
+
 open import Jcreed.Yoneda using (coyoneda)
 
 module Jcreed.Foo where
 
-is-natr : ∀ {i j} {A : Set i} {x y : A} (_⊂_ : A → A → Set j)
-          → ((z : A) → y ⊂ z → x ⊂ z) → Set (max i j)
-is-natr {A = A} {x = x} {y = y} _⊂_ α = (b c : A)
-    (g : (z : A) → z ⊂ b → z ⊂ c)
-    (h : y ⊂ b) → α c (g y h) ≡ g x (α b h)
-
-is-natr' : ∀ {i} {x y : Set i}
-          → ((z : Set i) → (y → z) → (x → z)) → Set (suc i)
-is-natr' {i} {x} {y} α = is-natr (λ A B → A → B) α
-
-natr : ∀ {i j} {A : Set i} (x y : A) → (A → A → Set j) → Set (max i j)
-natr {i} {j} {A} x y _⊂_ = Σ ((z : A) → y ⊂ z → x ⊂ z) (is-natr _⊂_)
-
-_⇒_ : ∀ {i} (x y : Set i) → Set (suc i)
-_⇒_ {i} x y = Σ ((z : _) → (y → z) → x → z) is-natr'
-
 postulate
   _≤_ : ∀ {i} {A : Set i} → A → A → Set i
-  ≤defn : {A : Set} {x y : A} → x ≤ y ≡ natr x y _≤_
-  univ : (A B : Set) → (A ≤ B) ≃ (A → B)
+  ≤defn : {A : Set} {x y : A} → x ≤ y ≡ ((z : A) → y ≤ z → x ≤ z)
 
+_⊂_ : Set → Set → Set
+A ⊂ B = Σ (A → B) (λ f → (x y : A) → x ≤ y → f x ≤ f y)
 
-module strong-thm-for-→ where
-  into : {A B : Set} → (A → B) → A ⇒ B
-  into f = (λ _ g → g ◯ f) , {!!}
+_*_ : {A B : Set} → (A ⊂ B) → A → B
+(f , ℓ) * x = f x
 
-  outo : {A B : Set} → A ⇒ B → (A → B)
-  outo h = {!!}
+_`_ : {A B : Set} (f : A ⊂ B) {x y : A} → x ≤ y → (f * x) ≤ (f * y)
+(f , ℓ) ` p = ℓ _ _ p
 
-  result : {A B : Set} → (A → B) ≃ (A ⇒ B)
-  result = into , iso-is-eq into outo {!!} {!!}
+postulate
+  univ : (A B : Set) → (A ≤ B) ≃ (A ⊂ B)
 
-  -- outo : {A B : Set} → ((C : Set) → (B → C) → (A → C)) → (A → B)
-  -- outo h = h _ (id _)
+module thm-for-→ where
+  into : {A B : Set} → (A ⊂ B) → ((C : Set) → (B ⊂ C) → (A ⊂ C))
+  into f C g = (λ x → g * (f * x)) , (λ _ _ p → g ` (f ` p))
 
-  -- result : {A B : Set} → (A → B) ≃ ((C : Set) → (B → C) → (A → C))
-  -- result = into , iso-is-eq into outo {!!} (λ x → refl)
+  I : (A : Set) → A ⊂ A
+  I A = (id _) , (λ _ _ p → p)
 
-module strong-thm-for-≡ where
-  into : {A : Set} {a b : A} → (a ≡ b) → natr a b _≡_
-  into refl = (λ x → id _) , (λ _ _ _ _ → refl)
+  outo : {A B : Set} → ((C : Set) → (B ⊂ C) → (A ⊂ C)) → (A ⊂ B)
+  outo {A} {B} h = h B (I B)
 
-  outo : {A : Set} {a b : A} → natr a b _≡_ → (a ≡ b)
-  outo f = π₁ f _ refl
-
-  into-outo : {A : Set} {a b : A} → (g : a ≡ b) → outo (into g) ≡ g
-  into-outo refl = refl
-
-  outo-into : {A : Set} {a b : A} → (f : natr a b _≡_) → π₁ (into (outo f)) ≡ π₁ f
-  outo-into f = {!π₂ f!}
+  result : {A B : Set} → (A ⊂ B) ≃ ((C : Set) → (B ⊂ C) → (A ⊂ C))
+  result = into , iso-is-eq into outo {!!} (λ x → refl)
 
 module thm-for-≡ where
   into : {A : Set} {a b : A} → (a ≡ b) → ((c : A) → b ≡ c → a ≡ c)
@@ -77,17 +56,6 @@ module thm-for-≡ where
 
   result : {A : Set} {a b : A} → (a ≡ b) ≡ ((c : A) → b ≡ c → a ≡ c)
   result = iso-to-path into outo outo-into into-outo
-
-
-module thm-for-→ where
-  into : {A B : Set} → (A → B) → ((C : Set) → (B → C) → (A → C))
-  into f c g = g ◯ f
-
-  outo : {A B : Set} → ((C : Set) → (B → C) → (A → C)) → (A → B)
-  outo h = h _ (id _)
-
-  result : {A B : Set} → (A → B) ≃ ((C : Set) → (B → C) → (A → C))
-  result = into , iso-is-eq into outo {!!} (λ x → refl)
 
   -- into-outo : {A : Set} {a b : A} → (g : a ≡ b) → outo (into g) ≡ g
   -- into-outo refl = refl
