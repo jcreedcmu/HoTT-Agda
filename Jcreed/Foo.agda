@@ -9,31 +9,35 @@ module Jcreed.Foo where
 postulate
   _≤_ : ∀ {i} {A : Set i} → A → A → Set i
   ≤defn : {A : Set} {x y : A} → x ≤ y ≡ ((z : A) → y ≤ z → x ≤ z)
+  univ : (A B : Set) → (A ≤ B) ≃ (A → B)
 
-_⊂_ : Set → Set → Set
-A ⊂ B = Σ (A → B) (λ f → (x y : A) → x ≤ y → f x ≤ f y)
+_⊂_ : {A : Set} (x y : A) → Set
+_⊂_ {A} x y = ((z : A) → z ≤ x → z ≤ y)
 
-_*_ : {A B : Set} → (A ⊂ B) → A → B
-(f , ℓ) * x = f x
 
-_`_ : {A B : Set} (f : A ⊂ B) {x y : A} → x ≤ y → (f * x) ≤ (f * y)
-(f , ℓ) ` p = ℓ _ _ p
+•-right-inv : {A B : Set} (p : A ≡ B) (x : B) → (p • ((! p) • x)) ≡ x
+•-right-inv refl x = refl
 
-postulate
-  univ : (A B : Set) → (A ≤ B) ≃ (A ⊂ B)
+module anti {A : Set} where
 
-module thm-for-→ where
-  into : {A B : Set} → (A ⊂ B) → ((C : Set) → (B ⊂ C) → (A ⊂ C))
-  into f C g = (λ x → g * (f * x)) , (λ _ _ p → g ` (f ` p))
+  ≤refl : {x : A} → x ≤ x
+  ≤refl = (! ≤defn) • (λ _ → id _)
 
-  I : (A : Set) → A ⊂ A
-  I A = (id _) , (λ _ _ p → p)
+  ≤trans : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
+  ≤trans = λ p q → (≤defn • p) _ q
 
-  outo : {A B : Set} → ((C : Set) → (B ⊂ C) → (A ⊂ C)) → (A ⊂ B)
-  outo {A} {B} h = h B (I B)
+  module xy {x y : A} where
+   into : x ⊂ y → x ≤ y
+   into = λ q → q x ≤refl
 
-  result : {A B : Set} → (A ⊂ B) ≃ ((C : Set) → (B ⊂ C) → (A ⊂ C))
-  result = into , iso-is-eq into outo {!!} (λ x → refl)
+   outo : x ≤ y → x ⊂ y
+   outo p z q = ≤trans q p
+
+   outo-into : (f : (w : A) → w ≤ x → w ≤ y) → (outo (into f)) ≡ f
+   outo-into f = {!!}
+
+   into-outo : (f : x ≤ y) → (into (outo f)) ≡ f
+   into-outo f =  {!!}
 
 module thm-for-≡ where
   into : {A : Set} {a b : A} → (a ≡ b) → ((c : A) → b ≡ c → a ≡ c)
