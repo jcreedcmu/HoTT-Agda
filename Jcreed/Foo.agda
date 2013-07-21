@@ -5,41 +5,41 @@ open import Jcreed.Yoneda using (coyoneda)
 
 module Jcreed.Foo where
 
-natr : {A : Set} (x y : A) → (A → A → Set) → Set
-natr {A} x y _⊂_ =  ((z : A) → y ⊂ z → x ⊂ z)
+is-natr : ∀ {i} {A : Set i} {x y : A} (_⊂_ : A → A → Set i)
+          → ((z : A) → y ⊂ z → x ⊂ z) → Set i
+is-natr {A = A} {x = x} {y = y} _⊂_ α = (b c : A)
+    (g : (z : A) → z ⊂ b → z ⊂ c)
+    (h : y ⊂ b) → α c (g y h) ≡ g x (α b h)
 
+natr : ∀ {i} {A : Set i} (x y : A) → (A → A → Set i) → Set i
+natr {i} {A} x y _⊂_ = Σ ((z : A) → y ⊂ z → x ⊂ z) (is-natr _⊂_)
 postulate
   _≤_ : ∀ {i} {A : Set i} → A → A → Set i
   ≤defn : {A : Set} {x y : A} → x ≤ y ≡ natr x y _≤_
   univ : (A B : Set) → (A ≤ B) ≃ (A → B)
 
-module Hom {A : Set} where
+_⇒_ : ∀ {i j} → Set i → Set j → Set (max i j)
+A ⇒ B = A → B
 
-  ≤refl : {x : A} → x ≤ x
-  ≤refl = (! ≤defn) • (λ _ → id _)
 
-  ≤trans : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
-  ≤trans = λ p q → (≤defn • p) _ q
+  -- outo : {A B : Set} → ((C : Set) → (B → C) → (A → C)) → (A → B)
+  -- outo h = h _ (id _)
 
-  alt-into : {x y : A} → x ≤ y → ((w : A) → w ≤ x → w ≤ y)
-  alt-into p _ q = ≤trans q p
+  -- result : {A B : Set} → (A → B) ≃ ((C : Set) → (B → C) → (A → C))
+  -- result = into , iso-is-eq into outo {!!} (λ x → refl)
 
-  alt-outo : {x y : A} → ((w : A) → w ≤ x → w ≤ y) → x ≤ y
-  alt-outo p = p _ ≤refl
+module strong-thm-for-≡ where
+  into : {A : Set} {a b : A} → (a ≡ b) → natr a b _≡_
+  into refl = (λ x → id _) , (λ _ _ _ _ → refl)
 
-  lemma : {x y : A} (f : (w : A) → w ≤ x → w ≤ y) (w : A) (q : w ≤ x) →
-   (≤defn • q) _ (f _ (! ≤defn • (λ _ x → x))) ≡ f w q
-  lemma = {!!}
+  outo : {A : Set} {a b : A} → natr a b _≡_ → (a ≡ b)
+  outo f = π₁ f _ refl
 
-  alt-into-outo : {x y : A} (f : (w : A) → w ≤ x → w ≤ y) → (alt-into (alt-outo f)) ≡ f
-  alt-into-outo f = {!!}
+  into-outo : {A : Set} {a b : A} → (g : a ≡ b) → outo (into g) ≡ g
+  into-outo refl = refl
 
-  alt-outo-into : {x y : A} (f : x ≤ y) → (alt-outo (alt-into f)) ≡ f
-  alt-outo-into f = {!!}
-
--- accept : {x y : Set₁} → ({z : Set} → (y → z) → (x → z)) ≡ (x → y)
--- accept = {!iso-to-path ? ? ? ?!}
-
+  outo-into : {A : Set} {a b : A} → (f : natr a b _≡_) → π₁ (into (outo f)) ≡ π₁ f
+  outo-into f = {!π₂ f!}
 
 module thm-for-≡ where
   into : {A : Set} {a b : A} → (a ≡ b) → ((c : A) → b ≡ c → a ≡ c)
@@ -148,3 +148,27 @@ module thm-for-→ where
 -- (π₁ (tap (ap _*_ I-d) I • (λ x → x)))
 -- ≡ a*
 -}
+
+-- module Hom {A : Set} where
+
+--   ≤refl : {x : A} → x ≤ x
+--   ≤refl = (! ≤defn) • (λ _ → id _)
+
+--   ≤trans : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
+--   ≤trans = λ p q → (≤defn • p) _ q
+
+--   alt-into : {x y : A} → x ≤ y → ((w : A) → w ≤ x → w ≤ y)
+--   alt-into p _ q = ≤trans q p
+
+--   alt-outo : {x y : A} → ((w : A) → w ≤ x → w ≤ y) → x ≤ y
+--   alt-outo p = p _ ≤refl
+
+--   lemma : {x y : A} (f : (w : A) → w ≤ x → w ≤ y) (w : A) (q : w ≤ x) →
+--    (≤defn • q) _ (f _ (! ≤defn • (λ _ x → x))) ≡ f w q
+--   lemma = {!!}
+
+--   alt-into-outo : {x y : A} (f : (w : A) → w ≤ x → w ≤ y) → (alt-into (alt-outo f)) ≡ f
+--   alt-into-outo f = {!!}
+
+--   alt-outo-into : {x y : A} (f : x ≤ y) → (alt-outo (alt-into f)) ≡ f
+--   alt-outo-into f = {!!}
