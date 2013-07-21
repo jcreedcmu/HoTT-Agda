@@ -5,22 +5,37 @@ open import Jcreed.Yoneda using (coyoneda)
 
 module Jcreed.Foo where
 
-is-natr : ∀ {i} {A : Set i} {x y : A} (_⊂_ : A → A → Set i)
-          → ((z : A) → y ⊂ z → x ⊂ z) → Set i
+is-natr : ∀ {i j} {A : Set i} {x y : A} (_⊂_ : A → A → Set j)
+          → ((z : A) → y ⊂ z → x ⊂ z) → Set (max i j)
 is-natr {A = A} {x = x} {y = y} _⊂_ α = (b c : A)
     (g : (z : A) → z ⊂ b → z ⊂ c)
     (h : y ⊂ b) → α c (g y h) ≡ g x (α b h)
 
-natr : ∀ {i} {A : Set i} (x y : A) → (A → A → Set i) → Set i
-natr {i} {A} x y _⊂_ = Σ ((z : A) → y ⊂ z → x ⊂ z) (is-natr _⊂_)
+is-natr' : ∀ {i} {x y : Set i}
+          → ((z : Set i) → (y → z) → (x → z)) → Set (suc i)
+is-natr' {i} {x} {y} α = is-natr (λ A B → A → B) α
+
+natr : ∀ {i j} {A : Set i} (x y : A) → (A → A → Set j) → Set (max i j)
+natr {i} {j} {A} x y _⊂_ = Σ ((z : A) → y ⊂ z → x ⊂ z) (is-natr _⊂_)
+
+_⇒_ : ∀ {i} (x y : Set i) → Set (suc i)
+_⇒_ {i} x y = Σ ((z : _) → (y → z) → x → z) is-natr'
+
 postulate
   _≤_ : ∀ {i} {A : Set i} → A → A → Set i
   ≤defn : {A : Set} {x y : A} → x ≤ y ≡ natr x y _≤_
   univ : (A B : Set) → (A ≤ B) ≃ (A → B)
 
-_⇒_ : ∀ {i j} → Set i → Set j → Set (max i j)
-A ⇒ B = A → B
 
+module strong-thm-for-→ where
+  into : {A B : Set} → (A → B) → A ⇒ B
+  into f = (λ _ g → g ◯ f) , {!!}
+
+  outo : {A B : Set} → A ⇒ B → (A → B)
+  outo h = {!!}
+
+  result : {A B : Set} → (A → B) ≃ (A ⇒ B)
+  result = into , iso-is-eq into outo {!!} {!!}
 
   -- outo : {A B : Set} → ((C : Set) → (B → C) → (A → C)) → (A → B)
   -- outo h = h _ (id _)
