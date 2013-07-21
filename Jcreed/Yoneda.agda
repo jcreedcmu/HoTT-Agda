@@ -1,20 +1,9 @@
 {-# OPTIONS --without-K #-}
 
 open import Base
+open import Jcreed.Util
 
 module Jcreed.Yoneda where
-
-  record Functor : Set₁ where
-    constructor functor
-    field
-      _*_ : Set → Set
-      _`_ : {A B : Set} (f : A → B) → _*_ A → _*_ B
-
-  open Functor public
-
-  -- converse of function extensionality
-  tap : ∀ {i j} {X : Set i} {Y : Set j} {f g : X → Y} → f ≡ g → (x : X) → f x ≡ g x
-  tap refl = λ x → refl
 
   -- apply a natural isomorphism at an object
   _·_ : {F G : Functor} (α : F ≡ G) → (A : Set) → F * A → G * A

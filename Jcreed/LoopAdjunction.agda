@@ -1,89 +1,63 @@
 {-# OPTIONS --without-K #-}
 
-open import Base hiding (Σ)
+open import Base renaming (Σ to sigma)
 open import Jcreed.Susp
+open import Jcreed.Util
 import Funext
+
+-- proof due to ecavallo
 
 module Jcreed.LoopAdjunction where
 
-  {- The goal here is to show the suspension is left adjoint to loops -}
+{- The goal here is to show the suspension is left adjoint to loops -}
 
-  record 2Pointed : Set₁ where
-    constructor pointed
-    field
-      space : Set
-      pn : space
-      ps : space
+Pointed : Set₁
+Pointed = sigma Set (λ A → A)
 
-  open 2Pointed public
-
-  record _⇒_ (X Y : 2Pointed) : Set where
-    constructor pmap
-    field
-      map : space X → space Y
-      pn-map : map (pn X) ≡ pn Y
-      ps-map : map (ps X) ≡ ps Y
-
-  open _⇒_ public
-
-  -- -- pointed maps compose
-  -- _⊚_ : {P Q R : Pointed} → (Q ⇒ R) → (P ⇒ Q) → (P ⇒ R)
-  -- _⊚_ {P} {Q} {R} F G = pmap (space-map F ◯ space-map G)
-  --                            (ap (space-map F) (point-map G) ∘ point-map F)
-
-  -- -- pointed maps have identities
-  -- pid : (P : Pointed) → (P ⇒ P)
-  -- pid P = pmap (id (space P)) refl
-
-  -- pointed-eq : (P Q : Pointed) (p : space P ≡ space Q)
-  --              (q : transport (id _) p (point P) ≡ point Q) → P ≡ Q
-  -- pointed-eq P Q p q = ap2 pointed p q
-
-  ap3 : {A D : Set} {B C : A → Set}
-        (f : (a : A) → B a → C a → D) {a1 a2 : A}
-        (p : a1 ≡ a2) →
-        {u1 : B a1} {u2 : B a2}
-        {v1 : C a1} {v2 : C a2} →
-        transport B p u1 ≡ u2 →
-        transport C p v1 ≡ v2 →
-        f a1 u1 v1 ≡ f a2 u2 v2
-  ap3 f refl refl refl = refl
+_⇒_ : (X Y : Pointed) → Set
+(P , p) ⇒ (Q , q) = sigma (P → Q) (λ f → f p ≡ q)
 
 
-  pmap-eq : {P Q : 2Pointed} (F G : P ⇒ Q)
-            (p : map F ≡ map G) →
-            transport (λ z → z (pn P) ≡ pn Q) p (pn-map F) ≡ pn-map G →
-            transport (λ z → z (ps P) ≡ ps Q) p (ps-map F) ≡ ps-map G →
-          F ≡ G
-  pmap-eq F G p q r = ap3 pmap p q r
+-- -- pointed maps compose
+-- _⊚_ : {P Q R : Pointed} → (Q ⇒ R) → (P ⇒ Q) → (P ⇒ R)
+-- _⊚_ {P} {Q} {R} F G = pmap (space-map F ◯ space-map G)
+--                            (ap (space-map F) (point-map G) ∘ point-map F)
 
-  Σ : Set → 2Pointed
-  Σ P = pointed (Susp P) (north P) (south P)
+-- -- pointed maps have identities
+-- pid : (P : Pointed) → (P ⇒ P)
+-- pid P = pmap (id (space P)) refl
 
-  Ω : 2Pointed → Set
-  Ω Q = pn Q ≡ ps Q
 
-  claim : (P : Set) (Q : 2Pointed) → (Σ P ⇒ Q) ≡ (P → Ω Q)
-  claim P Q = iso-to-path
-            (λ f x → ! (pn-map f) ∘ ap (map f) (paths P x) ∘ ps-map f)
-            (λ g → pmap (Susp-rec P (space Q) (pn Q) (ps Q) g) refl refl)
-            (λ y → funext (λ x →
-              refl-right-unit (ap (Susp-rec P (space Q) (pn Q) (ps Q) y) (paths P x))
-              ∘ Susp-ρ-paths P y x))
-            (λ x → pmap-eq
-              (pmap
-              (Susp-rec P (space Q) (pn Q) (ps Q)
-              (λ x₁ → ! (pn-map x) ∘ ap (map x) (paths P x₁) ∘ ps-map x))
-              refl refl) x
-              {!!} {!!} {!!})
 
+Σ : Pointed → Pointed
+Σ (P , x) = (Susp P , north P)
+
+Ω : Pointed → Pointed
+Ω (Q , x) = (x ≡ x) , refl
+
+
+Susp-adjoint-Ω : (P Q : Pointed)
+  → (Σ P ⇒ Q) ≡ (P ⇒ Ω Q)
+Susp-adjoint-Ω (P , p) (Q , q) = iso-to-path f g f-g g-f
+  where
+  Pp = (P , p)
+  Qq = (Q , q)
+  f : (Σ Pp ⇒ Qq) → (Pp ⇒ Ω Qq)
+  f (h , hpt) = (λ a → ! hpt ∘ ap h (paths P a ∘ ! (paths P p)) ∘ hpt) ,
+                {!!}
+  g : (Pp ⇒ Ω Qq) → (Σ Pp ⇒ Qq)
+  g = {!!}
+  f-g : {!!}
+  f-g = {!!}
+  g-f : {!!}
+  g-f = {!!}
   -- Ω : (Q : Set) (a b : Q) → Set
   -- Ω Q a b = a ≡ b
 
   -- Ωum :  (P Q : Set) (a b : Q) (m : P → a ≡ b) → P → Ω Q a b
   -- Ωum P Q a b m = m
 
-  -- Ωum : (P : Set) (Q : 2Pointed) (m : (x : P) → pn Q ≡ ps Q)
+  -- Ωum : (P : Set) (Q : 2Pointed) (m : (x : P) → pp Q ≡ ps Q)
   --       → P → Ω Q
   -- Ωump : (P Q : Set) (a b : Q) (m : P → a ≡ b)
   --        (h : P → Ω Q a b) → h ≡ Ωum P Q a b m
