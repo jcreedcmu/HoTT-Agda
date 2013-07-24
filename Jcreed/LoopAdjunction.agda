@@ -42,9 +42,13 @@ Susp-adjoint-Ω (P , p) (Q , q) = iso-to-path f g f-g g-f
   where
   Pp = (P , p)
   Qq = (Q , q)
+
+  path1 : (h : Susp P → Q) (gpt : h (north P) ≡ q) (a : P)
+    → ! hpt ∘ ap h (paths P a ∘ ! (paths P p)) ∘ hpt
+        ≡ ! hpt ∘ (ap h (paths P a) ∘ ! (ap h (paths P p)) ∘ hpt
   f : (Σ Pp ⇒ Qq) → (Pp ⇒ Ω Qq)
   f (h , hpt) = (λ a → ! hpt ∘ ap h (paths P a ∘ ! (paths P p)) ∘ hpt) ,
-                {!!}
+                {!path1 h hpt p ∘ path2 (ap h (paths P p)) hpt!}
   g : (Pp ⇒ Ω Qq) → (Σ Pp ⇒ Qq)
   g = {!!}
   f-g : {!!}

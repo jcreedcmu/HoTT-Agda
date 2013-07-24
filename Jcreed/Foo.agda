@@ -6,50 +6,41 @@ open import Jcreed.Yoneda using (coyoneda)
 
 module Jcreed.Foo where
 
+
 postulate
   _≤_ : ∀ {i} {A : Set i} → A → A → Set i
-  ≤defn : {A : Set} {x y : A} → x ≤ y ≡ ((z : A) → y ≤ z → x ≤ z)
+
+yon : ∀ {i j} {A : Set i} → ({Z : Set j} (x y : Z) → Set i) → (a b : A) → Set (max (suc j) i)
+yon {i} {j} {A} _⊂_ a b = ((Z : Set j) (f : A → Z) (z : Z) → (f b) ⊂ z → f a ⊂ z)
+
+postulate
+  ≤defn : {A : Set} {a b : A} → (a ≤ b) ≃ yon _≤_ a b
   univ : (A B : Set) → (A ≤ B) ≃ (A → B)
 
-_⊂_ : {A : Set} (x y : A) → Set
-_⊂_ {A} x y = ((z : A) → z ≤ x → z ≤ y)
-
-
-•-right-inv : {A B : Set} (p : A ≡ B) (x : B) → (p • ((! p) • x)) ≡ x
-•-right-inv refl x = refl
-
-module anti {A : Set} where
-
-  ≤refl : {x : A} → x ≤ x
-  ≤refl = (! ≤defn) • (λ _ → id _)
-
-  ≤trans : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
-  ≤trans = λ p q → (≤defn • p) _ q
-
-  module xy {x y : A} where
-   into : x ⊂ y → x ≤ y
-   into = λ q → q x ≤refl
-
-   outo : x ≤ y → x ⊂ y
-   outo p z q = ≤trans q p
-
-   outo-into : (f : (w : A) → w ≤ x → w ≤ y) → (outo (into f)) ≡ f
-   outo-into f = {!!}
-
-   into-outo : (f : x ≤ y) → (into (outo f)) ≡ f
-   into-outo f =  {!!}
-
 module thm-for-≡ where
-  into : {A : Set} {a b : A} → (a ≡ b) → ((c : A) → b ≡ c → a ≡ c)
-  into refl = λ x → id _
+  into : {A : Set} {a b : A} → (a ≡ b) → yon _≡_ a b
+  into refl = λ _ _ _ → id _
 
-  outo : {A : Set} {a b : A} → ((c : A) → b ≡ c → a ≡ c) → (a ≡ b)
-  outo f = f _ refl
+  outo : {A : Set} {a b : A} → yon _≡_ a b → (a ≡ b)
+  outo f = f _ (id _) _ refl
 
   into-outo : {A : Set} {a b : A} → (g : a ≡ b) → outo (into g) ≡ g
   into-outo refl = refl
 
-  outo-into : {A : Set} {a b : A} → (f : ((c : A) → (b ≡ c) → (a ≡ c))) → into (outo f) ≡ f
+  outo-into : {A : Set} {a b : A} → (f : yon _≡_ a b) → into (outo f) ≡ f
+  outo-into f = funext (λ _ → funext (λ g → funext (λ _ → funext (λ q →
+                          lemma1 (outo f) q ∘ lemma2 f (id _) g refl q)))) where
+    lemma1 : {A Z : Set} {a b : A} {f : A → Z} {z : Z} (g : a ≡ b) (h : f b ≡ z) → into g _ f _ h ≡ (ap f g) ∘ h
+    lemma1 refl h = refl
+
+    lemma2 : {A K Z : Set} {a b : A} → (f : yon _≡_ a b)
+           → (h : A → K) (g : K → Z) {k : K} {z : Z} (p : h b ≡ k) (q : g k ≡ z)
+           → ap g (f K h k p) ∘ q ≡ f Z (g ◯ h) z (ap g p ∘ q)
+-- ap g (f K h k p) ∘ q ≡ f Z (g ◯ h) z (ap g p ∘ q)
+-- ap g (f .A (λ x → x) .b refl) ∘ m4 ≡ f m1 g m3 m4
+    lemma2 f h g p q = {!!}
+
+{-
   outo-into f = funext (λ x → funext (λ y → lemma1 (f _ refl) y ∘ lemma2 refl y f)) where
     lemma1 : {A : Set} {a b c : A} (g : a ≡ b) (h : b ≡ c) → into g _ h ≡ g ∘ h
     lemma1 refl h = refl
@@ -57,9 +48,10 @@ module thm-for-≡ where
     lemma2 : {A : Set} {a b c d : A} (p : b ≡ c) (q : c ≡ d) (f : (c : A) → b ≡ c → a ≡ c)
               → (f _ p) ∘ q ≡ f _ (p ∘ q)
     lemma2 refl refl f = refl-right-unit _
+-}
 
-  result : {A : Set} {a b : A} → (a ≡ b) ≡ ((c : A) → b ≡ c → a ≡ c)
-  result = iso-to-path into outo outo-into into-outo
+--   result : {A : Set} {a b : A} → (a ≡ b) ≡ ((c : A) → b ≡ c → a ≡ c)
+--   result = iso-to-path into outo outo-into into-outo
 
   -- into-outo : {A : Set} {a b : A} → (g : a ≡ b) → outo (into g) ≡ g
   -- into-outo refl = refl
